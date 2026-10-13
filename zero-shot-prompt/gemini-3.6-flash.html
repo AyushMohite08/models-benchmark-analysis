@@ -1,0 +1,2184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ORBITAL 09 — Saturn-Enceladus Operational Command // Mission ENC-8842</title>
+  <style>
+    /* ==========================================================================
+       ORBITAL 09 — DESIGN SYSTEM & VISUAL CONSTANTS
+       ========================================================================== */
+    :root {
+      /* Background Hierarchy */
+      --bg-void: #03060a;
+      --bg-base: #060b13;
+      --bg-panel: #0b121e;
+      --bg-surface: #101a2b;
+      --bg-surface-hover: #16243b;
+      --bg-active: #1d2e4a;
+      
+      /* Grid & Borders */
+      --border-subtle: rgba(56, 189, 248, 0.12);
+      --border-medium: rgba(56, 189, 248, 0.28);
+      --border-bright: rgba(0, 240, 255, 0.65);
+      --grid-line: rgba(56, 189, 248, 0.05);
+
+      /* Primary Color Palette */
+      --cyan-core: #00f0ff;
+      --cyan-bright: #38bdf8;
+      --cyan-muted: #7dd3fc;
+      --cyan-ghost: rgba(0, 240, 255, 0.08);
+
+      /* Warning & Status Colors */
+      --amber-alert: #ffb703;
+      --amber-ghost: rgba(255, 183, 3, 0.12);
+      --red-anomaly: #ff3366;
+      --red-ghost: rgba(255, 51, 102, 0.14);
+      --green-nominal: #10b981;
+      --green-ghost: rgba(16, 185, 129, 0.12);
+
+      /* Typography & Neutral Colors */
+      --text-white: #f8fafc;
+      --text-main: #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-dim: #64748b;
+      --text-dark: #334155;
+
+      /* Font Stacks */
+      --font-mono: ui-monospace, "Cascadia Code", "JetBrains Mono", "SF Mono", Consolas, "Courier New", monospace;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+      /* UI Constants */
+      --radius-sm: 2px;
+      --radius-md: 4px;
+      --transition-fast: 0.15s ease;
+      --transition-normal: 0.25s ease;
+      --glow-cyan: 0 0 16px rgba(0, 240, 255, 0.25);
+      --glow-amber: 0 0 16px rgba(255, 183, 3, 0.3);
+    }
+
+    /* Reset & Base Setup */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      background-color: var(--bg-void);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Subtle background grid pattern & scanlines */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(6, 11, 19, 0) 50%, rgba(3, 6, 10, 0.4) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-base);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-medium);
+      border-radius: var(--radius-sm);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--cyan-core);
+    }
+
+    /* Typography Utility Classes */
+    .mono { font-family: var(--font-mono); }
+    .text-cyan { color: var(--cyan-core); }
+    .text-bright { color: var(--cyan-bright); }
+    .text-amber { color: var(--amber-alert); }
+    .text-red { color: var(--red-anomaly); }
+    .text-green { color: var(--green-nominal); }
+    .text-muted { color: var(--text-secondary); }
+    .text-dim { color: var(--text-dim); }
+    .tabular { font-variant-numeric: tabular-nums; }
+    .uppercase { text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* Layout Container */
+    #app-container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      max-width: 1920px;
+      margin: 0 auto;
+      padding: 12px;
+      gap: 12px;
+    }
+
+    /* Frame Border Decorator */
+    .panel {
+      background-color: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      position: relative;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
+      transition: border-color var(--transition-fast);
+    }
+    .panel::before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      width: 6px;
+      height: 6px;
+      border-top: 2px solid var(--cyan-bright);
+      border-left: 2px solid var(--cyan-bright);
+      pointer-events: none;
+    }
+    .panel::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 6px;
+      height: 6px;
+      border-bottom: 2px solid var(--cyan-bright);
+      border-right: 2px solid var(--cyan-bright);
+      pointer-events: none;
+    }
+    .panel-header {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(16, 26, 43, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--cyan-bright);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-title-icon {
+      width: 6px;
+      height: 6px;
+      background-color: var(--cyan-core);
+      box-shadow: 0 0 8px var(--cyan-core);
+      display: inline-block;
+    }
+    .panel-body {
+      padding: 14px;
+    }
+
+    /* ==========================================================================
+       HEADER & NAVIGATION BAR
+       ========================================================================== */
+    header.header-panel {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 16px;
+      background: var(--bg-base);
+      border: 1px solid var(--border-medium);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .agency-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .agency-symbol {
+      width: 32px;
+      height: 32px;
+      background: radial-gradient(circle, var(--cyan-core) 0%, transparent 70%);
+      border: 1.5px solid var(--cyan-core);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--glow-cyan);
+      position: relative;
+    }
+    .agency-symbol::after {
+      content: "";
+      width: 14px;
+      height: 14px;
+      border: 1px stroke var(--cyan-core);
+      border-radius: 50%;
+      border-top: 2px solid var(--text-white);
+      transform: rotate(45deg);
+    }
+    .agency-title {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      color: var(--text-white);
+    }
+    .agency-sub {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+
+    .mission-meta-strip {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding-left: 16px;
+      border-left: 1px solid var(--border-subtle);
+    }
+    .meta-block {
+      display: flex;
+      flex-direction: column;
+    }
+    .meta-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .meta-value {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Primary Navigation Tabs */
+    nav.nav-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-surface);
+      padding: 3px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+    }
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--transition-fast);
+      letter-spacing: 0.05em;
+    }
+    .nav-btn:hover {
+      color: var(--text-white);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .nav-btn.active {
+      background: var(--cyan-ghost);
+      color: var(--cyan-core);
+      border: 1px solid var(--border-bright);
+      box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.15);
+    }
+    .nav-btn:focus-visible {
+      outline: 2px solid var(--cyan-core);
+      outline-offset: 1px;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--green-ghost);
+      border: 1px solid var(--green-nominal);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--green-nominal);
+      letter-spacing: 0.08em;
+    }
+    .status-ping {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: var(--green-nominal);
+      box-shadow: 0 0 8px var(--green-nominal);
+      animation: pulse-ping 2s infinite;
+    }
+    @keyframes pulse-ping {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.3); }
+    }
+
+    /* ==========================================================================
+       DISMISSIBLE ANOMALY ALERT BANNER
+       ========================================================================== */
+    .anomaly-banner {
+      background: linear-gradient(90deg, rgba(255, 51, 102, 0.15) 0%, rgba(11, 18, 30, 0.95) 100%);
+      border: 1px solid var(--red-anomaly);
+      border-left: 4px solid var(--red-anomaly);
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      animation: alert-slide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 20px rgba(255, 51, 102, 0.15);
+      transition: all var(--transition-normal);
+    }
+    .anomaly-banner.dismissed {
+      display: none;
+    }
+    @keyframes alert-slide {
+      from { transform: translateY(-8px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .anomaly-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .anomaly-icon-box {
+      background: var(--red-anomaly);
+      color: var(--bg-void);
+      font-family: var(--font-mono);
+      font-weight: 900;
+      font-size: 14px;
+      padding: 4px 8px;
+      border-radius: 2px;
+      margin-top: 2px;
+    }
+    .anomaly-title {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--red-anomaly);
+      letter-spacing: 0.1em;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .anomaly-desc {
+      font-size: 12px;
+      color: var(--text-main);
+      max-width: 900px;
+    }
+    .anomaly-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .btn:focus-visible {
+      outline: 2px solid var(--cyan-core);
+      outline-offset: 1px;
+    }
+    .btn-red {
+      background: rgba(255, 51, 102, 0.2);
+      color: var(--red-anomaly);
+      border-color: var(--red-anomaly);
+    }
+    .btn-red:hover {
+      background: var(--red-anomaly);
+      color: var(--bg-void);
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--text-secondary);
+      border-color: var(--border-medium);
+    }
+    .btn-outline:hover {
+      background: var(--bg-surface-hover);
+      color: var(--text-white);
+      border-color: var(--cyan-bright);
+    }
+    .btn-cyan {
+      background: var(--cyan-ghost);
+      color: var(--cyan-core);
+      border-color: var(--border-bright);
+    }
+    .btn-cyan:hover {
+      background: var(--cyan-core);
+      color: var(--bg-void);
+      box-shadow: var(--glow-cyan);
+    }
+    .btn-cyan.active {
+      background: var(--cyan-core);
+      color: var(--bg-void);
+      box-shadow: var(--glow-cyan);
+    }
+
+    /* Compact restore warning chip (shown when banner is dismissed) */
+    .anomaly-chip {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 3px 8px;
+      background: var(--red-ghost);
+      border: 1px solid var(--red-anomaly);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--red-anomaly);
+      cursor: pointer;
+    }
+    .anomaly-chip.visible {
+      display: inline-flex;
+    }
+    .anomaly-chip:hover {
+      background: rgba(255, 51, 102, 0.25);
+    }
+
+    /* ==========================================================================
+       GRID SYSTEM & DASHBOARD LAYOUT
+       ========================================================================== */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr 340px;
+      grid-gap: 12px;
+      flex: 1;
+    }
+    @media (max-width: 1400px) {
+      .dashboard-grid {
+        grid-template-columns: 320px 1fr;
+      }
+      .right-column {
+        grid-column: span 2;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+    }
+    @media (max-width: 900px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+      .right-column {
+        grid-column: span 1;
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ==========================================================================
+       LEFT COLUMN — TELEMETRY METRICS CARDS
+       ========================================================================== */
+    .telemetry-summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .metric-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      position: relative;
+    }
+    .metric-card.warning-highlight {
+      border-color: var(--amber-alert);
+      background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(255, 183, 3, 0.08) 100%);
+    }
+    .metric-card.anomaly-highlight {
+      border-color: var(--red-anomaly);
+      background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(255, 51, 102, 0.1) 100%);
+    }
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .metric-name {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-secondary);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .metric-unit {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-dim);
+    }
+    .metric-value-large {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-white);
+      line-height: 1.1;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .metric-subtext {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: var(--cyan-bright);
+      margin-top: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Progress bar widget */
+    .progress-bar-bg {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--cyan-core);
+      width: 80%;
+      transition: width 0.5s ease;
+      box-shadow: var(--glow-cyan);
+    }
+    .progress-bar-fill.amber {
+      background: var(--amber-alert);
+      box-shadow: var(--glow-amber);
+    }
+    .progress-bar-fill.red {
+      background: var(--red-anomaly);
+      box-shadow: 0 0 10px var(--red-anomaly);
+    }
+
+    /* Probe Control Panel */
+    .control-group {
+      margin-bottom: 12px;
+    }
+    .control-group-title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+    .state-btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .state-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 8px 10px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      text-align: left;
+      transition: all var(--transition-fast);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .state-btn:hover {
+      border-color: var(--border-medium);
+      color: var(--text-main);
+      background: var(--bg-surface-hover);
+    }
+    .state-btn.active {
+      background: var(--cyan-ghost);
+      border-color: var(--cyan-core);
+      color: var(--cyan-core);
+    }
+    .state-btn-desc {
+      font-size: 8.5px;
+      color: var(--text-dim);
+      font-weight: normal;
+    }
+    .state-btn.active .state-btn-desc {
+      color: var(--cyan-muted);
+    }
+
+    /* Custom Slider & Toggles */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .range-input {
+      flex: 1;
+      accent-color: var(--cyan-core);
+      background: var(--bg-surface);
+      height: 4px;
+      cursor: pointer;
+    }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+    }
+
+    /* ==========================================================================
+       CENTER COLUMN — VISUALIZATION HUD (ENCLADUS & PROBE)
+       ========================================================================== */
+    .center-column {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .viz-panel {
+      flex: 1;
+      min-height: 520px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+    .viz-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: rgba(6, 11, 19, 0.8);
+      border-bottom: 1px solid var(--border-subtle);
+      z-index: 5;
+    }
+    .viz-mode-group {
+      display: flex;
+      gap: 4px;
+    }
+    .viz-btn {
+      padding: 4px 10px;
+      font-size: 10px;
+    }
+
+    /* Canvas / SVG Viewing Workspace */
+    .viz-viewport {
+      flex: 1;
+      position: relative;
+      background: radial-gradient(circle at 50% 45%, #0d1a2d 0%, #060b13 75%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: crosshair;
+      user-select: none;
+    }
+    
+    #enceladus-svg {
+      width: 100%;
+      height: 100%;
+      max-height: 580px;
+      display: block;
+    }
+
+    /* HUD Corner Overlays */
+    .hud-overlay {
+      position: absolute;
+      pointer-events: none;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      z-index: 4;
+    }
+    .hud-top-left {
+      top: 12px;
+      left: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hud-top-right {
+      top: 12px;
+      right: 12px;
+      text-align: right;
+    }
+    .hud-bottom-left {
+      bottom: 12px;
+      left: 12px;
+    }
+    .hud-bottom-right {
+      bottom: 12px;
+      right: 12px;
+      text-align: right;
+    }
+    .hud-reticle {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      border: 1px dashed rgba(0, 240, 255, 0.25);
+      border-radius: 50%;
+      pointer-events: none;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hud-reticle::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cyan-core);
+      box-shadow: var(--glow-cyan);
+    }
+
+    /* Interactive Tab Content Containers */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ==========================================================================
+       RIGHT COLUMN — EVENTS TIMELINE & COMMUNICATIONS
+       ========================================================================== */
+    .timeline-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .timeline-item {
+      position: relative;
+      padding-left: 18px;
+      padding-bottom: 10px;
+      border-left: 1px solid var(--border-subtle);
+    }
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -4px;
+      top: 2px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--cyan-bright);
+      box-shadow: var(--glow-cyan);
+    }
+    .timeline-item.anomaly::before {
+      background: var(--red-anomaly);
+      box-shadow: 0 0 8px var(--red-anomaly);
+    }
+    .timeline-item.warning::before {
+      background: var(--amber-alert);
+      box-shadow: 0 0 8px var(--amber-alert);
+    }
+    .timeline-timestamp {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: var(--text-dim);
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .timeline-tag {
+      padding: 1px 4px;
+      border-radius: 2px;
+      font-size: 8.5px;
+      font-weight: bold;
+      background: var(--bg-surface);
+      color: var(--cyan-bright);
+    }
+    .timeline-item.anomaly .timeline-tag {
+      background: var(--red-ghost);
+      color: var(--red-anomaly);
+    }
+    .timeline-text {
+      font-size: 11.5px;
+      color: var(--text-main);
+      line-height: 1.35;
+    }
+
+    /* Waveform / Communications Display */
+    .signal-canvas-box {
+      height: 60px;
+      width: 100%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      margin-top: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    #signal-waveform {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .comms-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    /* ==========================================================================
+       TAB PANELS FOR ALTERNATE VIEWS
+       ========================================================================== */
+    .tab-view-container {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      min-height: 480px;
+    }
+    
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .data-table th {
+      text-align: left;
+      padding: 8px;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border-medium);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .data-table td {
+      padding: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-main);
+    }
+    .data-table tr:hover td {
+      background: var(--bg-surface-hover);
+    }
+
+    /* Cross-section thermal graphic helper */
+    .thermal-crosssection {
+      width: 100%;
+      height: 240px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      margin-top: 12px;
+      border-radius: var(--radius-sm);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Sounding Graph CSS Canvas styling */
+    .sounding-bar-container {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 140px;
+      padding-top: 20px;
+      border-bottom: 1px solid var(--border-medium);
+    }
+    .sounding-bar {
+      flex: 1;
+      background: linear-gradient(180deg, var(--cyan-core) 0%, rgba(0, 240, 255, 0.1) 100%);
+      transition: height 0.3s ease;
+      position: relative;
+    }
+    .sounding-bar:hover::after {
+      content: attr(data-val);
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      color: var(--cyan-core);
+    }
+
+    /* Footer status strip */
+    footer.footer-panel {
+      padding: 6px 14px;
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    /* Accessibility / Focus & Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app-container">
+
+  <!-- ==========================================================================
+       AGENCY HEADER & PRIMARY NAVIGATION
+       ========================================================================== -->
+  <header class="header-panel panel">
+    <div class="brand-section">
+      <a href="#" class="agency-logo" aria-label="ORBITAL 09 Home">
+        <div class="agency-symbol" aria-hidden="true"></div>
+        <div>
+          <div class="agency-title">ORBITAL 09</div>
+          <div class="agency-sub">Saturn-Enceladus Operational Command</div>
+        </div>
+      </a>
+      <div class="mission-meta-strip">
+        <div class="meta-block">
+          <span class="meta-label">Mission ID</span>
+          <span class="meta-value text-cyan">ENC-8842 // VOYAGER-IX</span>
+        </div>
+        <div class="meta-block">
+          <span class="meta-label">Target Celestial Body</span>
+          <span class="meta-value">Enceladus (Saturn VI)</span>
+        </div>
+        <div class="meta-block">
+          <span class="meta-label">Mission Elapsed Time</span>
+          <span class="meta-value tabular text-bright" id="met-clock">142d 18h 42m 09s</span>
+        </div>
+        <div class="meta-block">
+          <span class="meta-label">One-Way Light Time</span>
+          <span class="meta-value tabular text-dim" id="owlt-display">01h 24m 14.2s (84.2m)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" role="tablist" aria-label="Mission Views">
+      <button class="nav-btn active" role="tab" aria-selected="true" id="tab-btn-orbital" aria-controls="view-orbital" onclick="switchMainTab('orbital')">
+        <span class="mono">[01]</span> ORBITAL HUD
+      </button>
+      <button class="nav-btn" role="tab" aria-selected="false" id="tab-btn-thermal" aria-controls="view-thermal" onclick="switchMainTab('thermal')">
+        <span class="mono">[02]</span> THERMAL MAP
+      </button>
+      <button class="nav-btn" role="tab" aria-selected="false" id="tab-btn-radar" aria-controls="view-radar" onclick="switchMainTab('radar')">
+        <span class="mono">[03]</span> RADAR SOUNDER
+      </button>
+      <button class="nav-btn" role="tab" aria-selected="false" id="tab-btn-logs" aria-controls="view-logs" onclick="switchMainTab('logs')">
+        <span class="mono">[04]</span> TELEMETRY LOGS
+      </button>
+    </nav>
+
+    <!-- DSN Link Status Badge -->
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div class="anomaly-chip" id="anomaly-chip" onclick="restoreAnomalyBanner()" title="Click to view warning alert">
+        <span class="mono">⚠ 1 ACTIVE ANOMALY</span>
+      </div>
+      <div class="status-badge" id="dsn-status-badge">
+        <div class="status-ping"></div>
+        <span>DSN LINK: NOMINAL</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       DISMISSIBLE WARNING BANNER (ANOMALY ALERT)
+       ========================================================================== -->
+  <div class="anomaly-banner" id="anomaly-banner" role="alert" aria-live="assertive">
+    <div class="anomaly-content">
+      <div class="anomaly-icon-box">!</div>
+      <div>
+        <div class="anomaly-title">
+          <span>ANOMALY DETECTED // SECTOR 7-C (CAIRO SULCUS)</span>
+          <span class="meta-label text-dim">DETECTED: MET 142d 18:38:12</span>
+        </div>
+        <div class="anomaly-desc">
+          Unusual thermal surge recorded at sub-surface vent 4 (+48.6 K temperature delta above baseline). Cryogenic plume gas velocity elevated by 312%. Autonomous burst sampling initiated by probe <strong>AURELIA-09</strong>.
+        </div>
+      </div>
+    </div>
+    <div class="anomaly-actions">
+      <button class="btn btn-red" onclick="switchMainTab('thermal')">Inspect Thermal Map</button>
+      <button class="btn btn-outline" onclick="dismissAnomalyBanner()" aria-label="Acknowledge and dismiss warning">Acknowledge & Dismiss</button>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       PRIMARY WORKSPACE VIEWS
+       ========================================================================== -->
+
+  <!-- TAB VIEW 01: ORBITAL HUD (MAIN DASHBOARD) -->
+  <div id="view-orbital" class="tab-content active" role="tabpanel" aria-labelledby="tab-btn-orbital">
+    <div class="dashboard-grid">
+
+      <!-- LEFT COLUMN: TELEMETRY & PROBE CONTROLS -->
+      <div class="column">
+        
+        <!-- Mission Status Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-title-icon"></span>
+              Mission Status & Phase
+            </div>
+            <span class="meta-label text-cyan" id="current-op-state-tag">AUTONOMOUS SURVEY</span>
+          </div>
+          <div class="panel-body">
+            <div style="margin-bottom: 10px;">
+              <div class="meta-label">Active Mission Phase</div>
+              <div style="font-size: 13px; font-weight: 700; color: var(--text-white); margin-top: 2px;">
+                PHASE III: SUB-SURFACE HYDROTHERMAL PLUME SAMPLING
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <div class="metric-card" style="flex:1;">
+                <div class="metric-name">Orbit Cycle</div>
+                <div class="metric-value-large tabular">REV-412</div>
+                <div class="metric-subtext"><span>Polar Incl: 88.4°</span></div>
+              </div>
+              <div class="metric-card" style="flex:1;">
+                <div class="metric-name">Probe Health</div>
+                <div class="metric-value-large text-green tabular">99.4%</div>
+                <div class="metric-subtext"><span>All Systems Nom</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Telemetry Metrics Grid (6 Primary Telemetry Items) -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-title-icon"></span>
+              Probe Live Telemetry
+            </div>
+            <span class="meta-label text-dim">100Hz STREAM</span>
+          </div>
+          <div class="panel-body">
+            <div class="telemetry-summary-grid">
+              
+              <!-- Metric 1: Orbital Altitude -->
+              <div class="metric-card">
+                <div class="metric-header">
+                  <span class="metric-name">Altitude</span>
+                  <span class="metric-unit">KM</span>
+                </div>
+                <div class="metric-value-large tabular" id="tel-alt">42.6</div>
+                <div class="metric-subtext">
+                  <span>Speed: <span id="tel-speed">1.48</span> km/s</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" id="bar-alt" style="width: 48%;"></div>
+                </div>
+              </div>
+
+              <!-- Metric 2: Thermal Reading (Anomaly Highlight) -->
+              <div class="metric-card anomaly-highlight">
+                <div class="metric-header">
+                  <span class="metric-name text-red">Vent Temp</span>
+                  <span class="metric-unit">KELVIN</span>
+                </div>
+                <div class="metric-value-large text-red tabular" id="tel-temp">188.4</div>
+                <div class="metric-subtext">
+                  <span class="text-red">Δ +48.6K Surge</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill red" id="bar-temp" style="width: 82%;"></div>
+                </div>
+              </div>
+
+              <!-- Metric 3: RTG Nuclear Power Core -->
+              <div class="metric-card">
+                <div class="metric-header">
+                  <span class="metric-name">Power (RTG)</span>
+                  <span class="metric-unit">WATTS</span>
+                </div>
+                <div class="metric-value-large tabular" id="tel-power">284.2</div>
+                <div class="metric-subtext">
+                  <span>Battery: <span id="tel-batt">94.1%</span></span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" id="bar-power" style="width: 94%;"></div>
+                </div>
+              </div>
+
+              <!-- Metric 4: Signal SNR / Latency -->
+              <div class="metric-card">
+                <div class="metric-header">
+                  <span class="metric-name">Signal SNR</span>
+                  <span class="metric-unit">dBm</span>
+                </div>
+                <div class="metric-value-large tabular" id="tel-signal">-114.8</div>
+                <div class="metric-subtext">
+                  <span>Carrier Lock: 99%</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" id="bar-signal" style="width: 76%;"></div>
+                </div>
+              </div>
+
+              <!-- Metric 5: Cryo-Plume Gas Density -->
+              <div class="metric-card warning-highlight">
+                <div class="metric-header">
+                  <span class="metric-name text-amber">Plume Density</span>
+                  <span class="metric-unit">p/cm³</span>
+                </div>
+                <div class="metric-value-large text-amber tabular" id="tel-density">4.8e6</div>
+                <div class="metric-subtext">
+                  <span>H₂O / CO₂ / CH₄</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill amber" id="bar-density" style="width: 88%;"></div>
+                </div>
+              </div>
+
+              <!-- Metric 6: Subsurface Ocean Pressure -->
+              <div class="metric-card">
+                <div class="metric-header">
+                  <span class="metric-name">Ocean Sound</span>
+                  <span class="metric-unit">BAR</span>
+                </div>
+                <div class="metric-value-large tabular" id="tel-press">4.24</div>
+                <div class="metric-subtext">
+                  <span>Depth: 34.2 km</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" id="bar-press" style="width: 62%;"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Probe Interactive Control Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-title-icon"></span>
+              Probe Operational Control
+            </div>
+            <span class="meta-label text-dim">COMMAND UPLINK</span>
+          </div>
+          <div class="panel-body">
+            
+            <!-- Requirement 2: Operational State Change Buttons -->
+            <div class="control-group">
+              <div class="control-group-title">Select Probe Operational State</div>
+              <div class="state-btn-grid">
+                <button class="state-btn active" id="op-btn-survey" onclick="setOperationalState('survey')">
+                  <span>AUTONOMOUS SURVEY</span>
+                  <span class="state-btn-desc">High orbit baseline scan</span>
+                </button>
+                <button class="state-btn" id="op-btn-dive" onclick="setOperationalState('dive')">
+                  <span>LOW-ALTITUDE DIVE</span>
+                  <span class="state-btn-desc">14km plume traversal</span>
+                </button>
+                <button class="state-btn" id="op-btn-hold" onclick="setOperationalState('hold')">
+                  <span>STATION KEEPING</span>
+                  <span class="state-btn-desc">Hold position over Cairo</span>
+                </button>
+                <button class="state-btn" id="op-btn-safe" onclick="setOperationalState('safe')">
+                  <span>SAFE / STANDBY</span>
+                  <span class="state-btn-desc">Stow boom & conserve power</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Additional Interactive Controls -->
+            <div class="control-group" style="margin-top: 10px;">
+              <div class="control-group-title">Radar Pulse Sounding Frequency</div>
+              <div class="slider-row">
+                <span class="mono text-dim">10Hz</span>
+                <input type="range" class="range-input" id="radar-freq-range" min="10" max="250" value="50" oninput="updateRadarFreq(this.value)">
+                <span class="mono text-bright tabular" id="radar-freq-val">50 Hz</span>
+              </div>
+            </div>
+
+            <div class="toggle-row">
+              <span class="meta-label">High-Rate Burst Downlink</span>
+              <button class="btn btn-cyan btn-sm" id="btn-toggle-burst" onclick="toggleBurstTelemetry()">DISABLED</button>
+            </div>
+
+            <div style="margin-top: 12px;">
+              <button class="btn btn-cyan" style="width: 100%; justify-content: center;" onclick="fireSoundingLaser()">
+                ⚡ FIRE SUBSURFACE RADAR SOUNDING PING
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CENTER COLUMN: ENCELADUS & ORBIT VISUALIZATION -->
+      <div class="column center-column">
+        
+        <div class="panel viz-panel">
+          <!-- Visualization Toolbar -->
+          <div class="viz-toolbar">
+            <div class="viz-mode-group">
+              <button class="btn btn-cyan viz-btn active" id="viz-btn-orbital" onclick="setVizRenderMode('orbital')">Orbital Vector</button>
+              <button class="btn btn-outline viz-btn" id="viz-btn-thermal" onclick="setVizRenderMode('thermal')">Thermal IR Heatmap</button>
+              <button class="btn btn-outline viz-btn" id="viz-btn-radar" onclick="setVizRenderMode('radar')">Subsurface Slice</button>
+              <button class="btn btn-outline viz-btn" id="viz-btn-mesh" onclick="setVizRenderMode('mesh')">Mesh Grid</button>
+            </div>
+            
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <button class="btn btn-outline viz-btn" onclick="toggleVizOverlay('plumes')" id="overlay-btn-plumes" title="Toggle plume vectors">Plumes</button>
+              <button class="btn btn-outline viz-btn active" onclick="toggleVizOverlay('orbit')" id="overlay-btn-orbit" title="Toggle orbit path">Orbit Path</button>
+              <button class="btn btn-outline viz-btn active" onclick="toggleVizOverlay('grid')" id="overlay-btn-grid" title="Toggle grid overlays">Grid</button>
+            </div>
+          </div>
+
+          <!-- Viewport with SVG Graphic -->
+          <div class="viz-viewport" id="viz-viewport-container">
+            
+            <!-- HUD Reticle overlay -->
+            <div class="hud-reticle" aria-hidden="true"></div>
+
+            <!-- HUD Diagnostics Metadata -->
+            <div class="hud-overlay hud-top-left">
+              <div><span class="text-dim">TARGET:</span> ENCELADUS (SATURN VI)</div>
+              <div><span class="text-dim">COORDINATES:</span> 82.4°S / 144.2°W</div>
+              <div><span class="text-dim">REGION:</span> SOUTH POLAR TIGER STRIPES</div>
+            </div>
+            
+            <div class="hud-overlay hud-top-right">
+              <div><span class="text-dim">PROBE:</span> AURELIA-09</div>
+              <div><span class="text-dim">MODE:</span> <span id="hud-mode-display" class="text-cyan">AUTONOMOUS</span></div>
+              <div><span class="text-dim">FOI SCAN:</span> <span id="hud-laser-status" class="text-green">READY</span></div>
+            </div>
+
+            <div class="hud-overlay hud-bottom-left">
+              <div><span class="text-dim">RENDER Engine:</span> INLINE VECTOR SVG v4.2</div>
+              <div><span class="text-dim">SCALE:</span> 1 : 500,000 KM</div>
+            </div>
+
+            <div class="hud-overlay hud-bottom-right">
+              <div><span class="text-amber">⚠ ANOMALY DETECTED</span></div>
+              <div>VENT 4 (CAIRO SULCUS)</div>
+            </div>
+
+            <!-- Main Interactive Inline SVG -->
+            <svg id="enceladus-svg" viewBox="0 0 800 550" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Interactive Diagram of Moon Enceladus and Probe Aurelia-09 Orbital Path">
+              <defs>
+                <!-- Space & Saturn Background Gradients -->
+                <radialGradient id="spaceGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#142847" stop-opacity="0.4"/>
+                  <stop offset="100%" stop-color="#060b13" stop-opacity="0"/>
+                </radialGradient>
+
+                <!-- Enceladus 3D Lighting Radial Gradient -->
+                <radialGradient id="moonLighting" cx="35%" cy="30%" r="65%">
+                  <stop offset="0%" stop-color="#e2e8f0"/>
+                  <stop offset="40%" stop-color="#94a3b8"/>
+                  <stop offset="70%" stop-color="#334155"/>
+                  <stop offset="95%" stop-color="#0f172a"/>
+                  <stop offset="100%" stop-color="#020617"/>
+                </radialGradient>
+
+                <!-- Thermal Heatmap Gradient Overlay -->
+                <radialGradient id="thermalHotspot" cx="50%" cy="85%" r="35%">
+                  <stop offset="0%" stop-color="#ff3366" stop-opacity="0.9"/>
+                  <stop offset="35%" stop-color="#ffb703" stop-opacity="0.6"/>
+                  <stop offset="70%" stop-color="#00f0ff" stop-opacity="0.2"/>
+                  <stop offset="100%" stop-color="#00f0ff" stop-opacity="0"/>
+                </radialGradient>
+
+                <!-- Cryo-Plume Ejection Gradient -->
+                <linearGradient id="plumeGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+                  <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.8"/>
+                  <stop offset="50%" stop-color="#38bdf8" stop-opacity="0.4"/>
+                  <stop offset="100%" stop-color="#00f0ff" stop-opacity="0"/>
+                </linearGradient>
+
+                <!-- Radar Sounding Beam Gradient -->
+                <linearGradient id="laserBeam" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#00f0ff" stop-opacity="1"/>
+                  <stop offset="100%" stop-color="#00f0ff" stop-opacity="0.1"/>
+                </linearGradient>
+
+                <!-- Grid Pattern -->
+                <pattern id="svgGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(56, 189, 248, 0.08)" stroke-width="1"/>
+                </pattern>
+              </defs>
+
+              <!-- Grid Background Layer -->
+              <rect id="svg-grid-layer" width="800" height="550" fill="url(#svgGrid)"/>
+
+              <!-- Saturn Limb & Ring Arc in distant background -->
+              <g id="saturn-background" opacity="0.25">
+                <path d="M -100,600 Q 200,100 900,-50" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4 4"/>
+                <path d="M -80,610 Q 220,110 920,-40" fill="none" stroke="#7dd3fc" stroke-width="8" opacity="0.2"/>
+              </g>
+
+              <!-- Central Ambient Glow -->
+              <circle cx="400" cy="260" r="210" fill="url(#spaceGlow)"/>
+
+              <!-- Orbital Grid Rings & Coordinate Latitudes -->
+              <g id="svg-coord-grid" stroke="rgba(0, 240, 255, 0.15)" stroke-width="1" fill="none">
+                <circle cx="400" cy="260" r="160" stroke-dasharray="2 6"/>
+                <circle cx="400" cy="260" r="220" stroke-dasharray="3 8"/>
+                <line x1="400" y1="50" x2="400" y2="470" stroke-dasharray="2 4"/>
+                <line x1="180" y1="260" x2="620" y2="260" stroke-dasharray="2 4"/>
+              </g>
+
+              <!-- Cryo-Plumes Bursting from South Pole -->
+              <g id="svg-plumes-layer">
+                <!-- Damascus Sulcus Plume -->
+                <path d="M 370,390 C 360,440 330,480 310,510" stroke="url(#plumeGradient)" stroke-width="12" fill="none" stroke-linecap="round"/>
+                <!-- Baghdad Sulcus Plume -->
+                <path d="M 395,395 C 395,450 390,490 385,530" stroke="url(#plumeGradient)" stroke-width="16" fill="none" stroke-linecap="round"/>
+                <!-- Cairo Sulcus Plume (Active Anomaly Surge) -->
+                <path d="M 420,392 C 435,445 460,485 490,525" stroke="url(#plumeGradient)" stroke-width="20" fill="none" stroke-linecap="round"/>
+                
+                <!-- Animated Plume Ejection Particles -->
+                <circle cx="435" cy="445" r="3" fill="#ffb703">
+                  <animate attributeName="cy" values="392;520;392" dur="3s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values="1;0;1" dur="3s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="395" cy="450" r="2" fill="#00f0ff">
+                  <animate attributeName="cy" values="395;510;395" dur="2.4s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values="1;0;1" dur="2.4s" repeatCount="indefinite"/>
+                </circle>
+              </g>
+
+              <!-- Moon Enceladus Body -->
+              <g id="enceladus-body">
+                <!-- Base Moon Sphere -->
+                <circle cx="400" cy="260" r="140" fill="url(#moonLighting)" stroke="rgba(56, 189, 248, 0.4)" stroke-width="1.5"/>
+
+                <!-- Surface Ice Fractures & Crater Features -->
+                <g stroke="rgba(226, 232, 240, 0.25)" stroke-width="1" fill="none">
+                  <path d="M 310,180 Q 360,210 420,170"/>
+                  <path d="M 330,240 Q 390,260 460,220"/>
+                  <circle cx="340" cy="200" r="8" stroke-dasharray="2 2"/>
+                  <circle cx="440" cy="190" r="12" stroke-dasharray="2 2"/>
+                </g>
+
+                <!-- South Polar Tiger Stripes (Damascus, Baghdad, Alexandria, Cairo Sulci) -->
+                <g id="tiger-stripes" stroke="#00f0ff" stroke-width="2.5" fill="none" opacity="0.85">
+                  <!-- Alexandria Sulcus -->
+                  <path d="M 335,365 Q 355,375 375,370"/>
+                  <!-- Damascus Sulcus -->
+                  <path d="M 355,375 Q 375,385 395,380"/>
+                  <!-- Baghdad Sulcus -->
+                  <path d="M 380,380 Q 400,392 420,385"/>
+                  <!-- Cairo Sulcus (Anomaly Zone) -->
+                  <path d="M 405,385 Q 425,398 448,390" stroke="#ff3366" stroke-width="3.5"/>
+                </g>
+              </g>
+
+              <!-- Thermal IR Overlay (Toggled by viz mode) -->
+              <circle id="svg-thermal-overlay" cx="425" cy="390" r="60" fill="url(#thermalHotspot)" opacity="0"/>
+
+              <!-- Subsurface Ocean Layer Cross-section Overlay (Toggled by viz mode) -->
+              <g id="svg-subsurface-slice" opacity="0">
+                <path d="M 260,260 A 140,140 0 0,0 540,260 Z" fill="rgba(0, 240, 255, 0.15)" stroke="#00f0ff" stroke-width="1" stroke-dasharray="4 4"/>
+                <path d="M 300,260 A 100,100 0 0,0 500,260 Z" fill="rgba(15, 23, 42, 0.8)" stroke="#64748b" stroke-width="1"/>
+                <text x="400" y="320" fill="#00f0ff" font-family="monospace" font-size="10" text-anchor="middle">SUB-SURFACE OCEAN (34 KM)</text>
+                <text x="400" y="340" fill="#64748b" font-family="monospace" font-size="9" text-anchor="middle">SILICATE CORE</text>
+              </g>
+
+              <!-- Target Callout Badge for Cairo Sulcus Anomaly -->
+              <g id="anomaly-callout" transform="translate(435, 385)">
+                <line x1="0" y1="0" x2="45" y2="45" stroke="#ff3366" stroke-width="1.5"/>
+                <line x1="45" y1="45" x2="110" y2="45" stroke="#ff3366" stroke-width="1.5"/>
+                <circle cx="0" cy="0" r="6" fill="none" stroke="#ff3366" stroke-width="1.5"/>
+                <rect x="45" y="24" width="115" height="18" fill="#0b121e" stroke="#ff3366" stroke-width="1" rx="2"/>
+                <text x="50" y="36" fill="#ff3366" font-family="monospace" font-size="9" font-weight="bold">ANOMALY: +48.6K</text>
+              </g>
+
+              <!-- Probe Aurelia-09 Orbital Path Ellipse -->
+              <g id="svg-orbit-layer">
+                <!-- Elliptical Orbit Curve -->
+                <ellipse id="orbit-ellipse" cx="400" cy="270" rx="260" ry="170" fill="none" stroke="#00f0ff" stroke-width="1.5" stroke-dasharray="6 6" opacity="0.6"/>
+                
+                <!-- Periapsis & Apoapsis Markers -->
+                <circle cx="140" cy="270" r="3" fill="#38bdf8"/>
+                <text x="120" y="265" fill="#94a3b8" font-family="monospace" font-size="8">PERIAPSIS (31.2 km)</text>
+                <circle cx="660" cy="270" r="3" fill="#38bdf8"/>
+                <text x="665" y="265" fill="#94a3b8" font-family="monospace" font-size="8">APOAPSIS (88.4 km)</text>
+              </g>
+
+              <!-- Radar Sounding Beam (Triggered on Demand) -->
+              <line id="sounding-beam-line" x1="280" y1="140" x2="415" y2="388" stroke="url(#laserBeam)" stroke-width="3" opacity="0"/>
+
+              <!-- Probe Spacecraft Icon (Positioned along orbital path) -->
+              <g id="probe-marker" transform="translate(280, 140)">
+                <!-- Sounding Laser pulse ring -->
+                <circle id="probe-ping-ring" cx="0" cy="0" r="12" fill="none" stroke="#00f0ff" stroke-width="1.5" opacity="0"/>
+
+                <!-- Solar Panels & Main Bus -->
+                <rect x="-14" y="-3" width="28" height="6" fill="#38bdf8" stroke="#00f0ff" stroke-width="1" rx="1"/>
+                <rect x="-4" y="-8" width="8" height="16" fill="#f8fafc" stroke="#00f0ff" stroke-width="1"/>
+                <circle cx="0" cy="0" r="3" fill="#00f0ff"/>
+                
+                <!-- Probe Vector Target Tag -->
+                <rect x="10" y="-18" width="95" height="16" fill="rgba(11, 18, 30, 0.85)" stroke="#00f0ff" stroke-width="1" rx="2"/>
+                <text x="14" y="-6" fill="#00f0ff" font-family="monospace" font-size="8.5" font-weight="bold">AURELIA-09 [ACTIVE]</text>
+              </g>
+
+            </svg>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: RECENT EVENTS TIMELINE & COMMUNICATIONS -->
+      <div class="column right-column">
+        
+        <!-- Timeline Panel -->
+        <div class="panel" style="flex: 1;">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-title-icon"></span>
+              Mission Events Timeline
+            </div>
+            <span class="meta-label text-dim">MET AUDIT LOG</span>
+          </div>
+          <div class="panel-body">
+            <div class="timeline-container" id="timeline-list">
+              
+              <!-- Event 1 (Anomaly) -->
+              <div class="timeline-item anomaly">
+                <div class="timeline-timestamp">
+                  <span class="timeline-tag">ANOMALY</span>
+                  <span class="tabular">MET 142d 18:38:12</span>
+                </div>
+                <div class="timeline-text">
+                  Thermal plume delta <strong>+48.6K</strong> detected at Cairo Sulcus vent 4. Cryogenic flow rate spiked to 450 kg/s.
+                </div>
+              </div>
+
+              <!-- Event 2 (Telemetry) -->
+              <div class="timeline-item">
+                <div class="timeline-timestamp">
+                  <span class="timeline-tag">TELEMETRY</span>
+                  <span class="tabular">MET 142d 17:15:00</span>
+                </div>
+                <div class="timeline-text">
+                  DSN Station 14 (Goldstone) acquired 14.4 Mbps high-rate carrier lock. Signal SNR stable at -114.8 dBm.
+                </div>
+              </div>
+
+              <!-- Event 3 (Navigation) -->
+              <div class="timeline-item">
+                <div class="timeline-timestamp">
+                  <span class="timeline-tag">NAV BURN</span>
+                  <span class="tabular">MET 142d 15:02:44</span>
+                </div>
+                <div class="timeline-text">
+                  RCS thruster trim burn executed (ΔV = +0.82 m/s). Adjusted inclination to 88.4° polar pass.
+                </div>
+              </div>
+
+              <!-- Event 4 (Science Payload) -->
+              <div class="timeline-item warning">
+                <div class="timeline-timestamp">
+                  <span class="timeline-tag">SCIENCE</span>
+                  <span class="tabular">MET 142d 11:20:18</span>
+                </div>
+                <div class="timeline-text">
+                  INMS Mass Spectrometer confirmed heavy organic macromolecule signatures (>200 u) in plume vapor.
+                </div>
+              </div>
+
+              <!-- Event 5 (Systems) -->
+              <div class="timeline-item">
+                <div class="timeline-timestamp">
+                  <span class="timeline-tag">SYSTEMS</span>
+                  <span class="tabular">MET 142d 08:00:00</span>
+                </div>
+                <div class="timeline-text">
+                  RTG thermal output recalibrated. Primary bus voltage stable at 28.4V DC.
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Communications & Signal Status Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-title-icon"></span>
+              DSN Deep Space Link
+            </div>
+            <span class="meta-label text-green">BAND: Ka-BAND</span>
+          </div>
+          <div class="panel-body">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="meta-label">Active DSN Station</span>
+              <span class="mono text-bright">DSS-14 (Goldstone, CA)</span>
+            </div>
+
+            <!-- Waveform Canvas -->
+            <div class="signal-canvas-box">
+              <canvas id="signal-waveform"></canvas>
+            </div>
+
+            <div class="comms-meta-grid">
+              <div class="metric-card">
+                <div class="metric-name">Downlink</div>
+                <div class="metric-value-large tabular" style="font-size: 14px;" id="comms-bitrate">14.4 Mbps</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-name">Doppler Shift</div>
+                <div class="metric-value-large tabular" style="font-size: 14px;" id="comms-doppler">+1,204 Hz</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB VIEW 02: THERMAL MAPPING -->
+  <div id="view-thermal" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-thermal">
+    <div class="tab-view-container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+          <h2 class="mono text-cyan" style="font-size: 16px;">SOUTH POLAR THERMAL MAP & PLUME VENT ANALYSIS</h2>
+          <div class="text-dim">Infrared Radiometric Sounding of Tiger Stripe Fracture Vents</div>
+        </div>
+        <button class="btn btn-cyan" onclick="switchMainTab('orbital')">← Return to Orbital HUD</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+        <div>
+          <div class="thermal-crosssection" id="thermal-interactive-box">
+            <!-- Simulated IR Vents Map -->
+            <svg width="100%" height="100%" viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg">
+              <rect width="600" height="220" fill="#0b121e"/>
+              <!-- Thermal background gradient -->
+              <radialGradient id="ventGlow1" cx="20%" cy="50%" r="30%">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.5"/>
+                <stop offset="100%" stop-color="#0b121e" stop-opacity="0"/>
+              </radialGradient>
+              <radialGradient id="ventGlowCairo" cx="75%" cy="50%" r="35%">
+                <stop offset="0%" stop-color="#ff3366" stop-opacity="0.9"/>
+                <stop offset="40%" stop-color="#ffb703" stop-opacity="0.6"/>
+                <stop offset="100%" stop-color="#0b121e" stop-opacity="0"/>
+              </radialGradient>
+              
+              <rect width="600" height="220" fill="url(#ventGlow1)"/>
+              <rect width="600" height="220" fill="url(#ventGlowCairo)"/>
+
+              <!-- Fracture Lines -->
+              <path d="M 50,110 Q 150,130 250,100" stroke="#00f0ff" stroke-width="3" fill="none"/>
+              <text x="70" y="90" fill="#00f0ff" font-family="monospace" font-size="10">Alexandria Sulcus (84K)</text>
+
+              <path d="M 180,120 Q 280,140 380,110" stroke="#00f0ff" stroke-width="3" fill="none"/>
+              <text x="200" y="100" fill="#00f0ff" font-family="monospace" font-size="10">Damascus Sulcus (92K)</text>
+
+              <path d="M 320,110 Q 420,130 520,100" stroke="#ffb703" stroke-width="4" fill="none"/>
+              <text x="340" y="90" fill="#ffb703" font-family="monospace" font-size="10">Baghdad Sulcus (114K)</text>
+
+              <path d="M 420,120 Q 500,150 580,115" stroke="#ff3366" stroke-width="5" fill="none"/>
+              <text x="440" y="170" fill="#ff3366" font-family="monospace" font-size="11" font-weight="bold">Cairo Sulcus Vent 4 (188.4K ANOMALY)</text>
+              <circle cx="480" cy="132" r="8" fill="none" stroke="#ff3366" stroke-width="2"/>
+            </svg>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel" style="height: 100%;">
+            <div class="panel-header">
+              <div class="panel-title">Vent Telemetry Breakdown</div>
+            </div>
+            <div class="panel-body">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Vent Fracture</th>
+                    <th>Temp</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Alexandria</td>
+                    <td>84.2 K</td>
+                    <td class="text-green">Nominal</td>
+                  </tr>
+                  <tr>
+                    <td>Damascus</td>
+                    <td>92.6 K</td>
+                    <td class="text-green">Nominal</td>
+                  </tr>
+                  <tr>
+                    <td>Baghdad</td>
+                    <td>114.1 K</td>
+                    <td class="text-amber">Elevated</td>
+                  </tr>
+                  <tr style="background: rgba(255, 51, 102, 0.15);">
+                    <td class="text-red"><strong>Cairo Vent 4</strong></td>
+                    <td class="text-red"><strong>188.4 K</strong></td>
+                    <td class="text-red"><strong>ANOMALY</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB VIEW 03: SUBSURFACE RADAR -->
+  <div id="view-radar" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-radar">
+    <div class="tab-view-container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+          <h2 class="mono text-cyan" style="font-size: 16px;">ICE SHELL SUBSURFACE RADAR SOUNDER (MARSIS-TYPE PLUME DEEP SOUNDING)</h2>
+          <div class="text-dim">Subsurface Dielectric Reflectivity & Ocean Interface Profile</div>
+        </div>
+        <button class="btn btn-cyan" onclick="switchMainTab('orbital')">← Return to Orbital HUD</button>
+      </div>
+
+      <div class="panel-body panel">
+        <div class="meta-label" style="margin-bottom: 8px;">Radar Dielectric Reflectivity vs. Ice Depth (km)</div>
+        
+        <div class="sounding-bar-container" id="sounding-bars-wrapper">
+          <!-- Dynamic JavaScript generated bars -->
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-top: 12px;" class="mono text-dim">
+          <span>0 km (Surface Ice)</span>
+          <span>5 km</span>
+          <span>10 km (Brine Channels)</span>
+          <span>15 km</span>
+          <span>20 km (Ice-Ocean Boundary)</span>
+          <span>25 km + (Global Subsurface Ocean)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB VIEW 04: TELEMETRY LOGS -->
+  <div id="view-logs" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-logs">
+    <div class="tab-view-container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+          <h2 class="mono text-cyan" style="font-size: 16px;">FULL TELEMETRY PACKET AUDIT LOG</h2>
+          <div class="text-dim">Raw Encrypted Downlink Frames from Probe Aurelia-09</div>
+        </div>
+        <button class="btn btn-cyan" onclick="switchMainTab('orbital')">← Return to Orbital HUD</button>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Frame ID</th>
+            <th>MET Timestamp</th>
+            <th>Subsystem</th>
+            <th>Payload Summary</th>
+            <th>Checksum</th>
+          </tr>
+        </thead>
+        <tbody id="raw-log-tbody">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       FOOTER STATUS STRIP
+       ========================================================================== -->
+  <footer class="footer-panel">
+    <div>
+      <span>SEOC SYSTEM VER: 9.4.12</span> |
+      <span class="text-cyan">CLIENT: OPERATOR TERMINAL E-09</span>
+    </div>
+    <div style="display: flex; gap: 16px;">
+      <span>LATENCY: <span id="footer-ping" class="text-bright">84.2m</span></span>
+      <span>SECURITY: <span class="text-green">LEVEL 5 CLEARANCE</span></span>
+      <span>STATUS: <span class="text-green">ONLINE</span></span>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ==========================================================================
+     INTERACTIVE JAVASCRIPT LOGIC & TELEMETRY ENGINE
+     ========================================================================== -->
+<script>
+  /* ==========================================================================
+     GLOBAL MISSION STATE
+     ========================================================================== */
+  const missionState = {
+    metSeconds: 12336129, // 142d 18h 42m 09s
+    operationalMode: 'survey', // survey | dive | hold | safe
+    vizMode: 'orbital', // orbital | thermal | radar | mesh
+    vizOverlays: {
+      plumes: true,
+      orbit: true,
+      grid: true
+    },
+    burstTelemetry: false,
+    radarFrequency: 50,
+    anomalyDismissed: false,
+    probePositionDeg: 45 // Elliptical animation phase
+  };
+
+  /* Baseline metrics for different operational modes */
+  const modeTargets = {
+    survey: { alt: 42.6, speed: 1.48, temp: 188.4, power: 284.2, batt: 94.1, signal: -114.8, density: '4.8e6', press: 4.24, stateTag: 'AUTONOMOUS SURVEY' },
+    dive:   { alt: 14.2, speed: 2.15, temp: 212.8, power: 310.5, batt: 91.8, signal: -108.2, density: '1.2e8', press: 6.80, stateTag: 'LOW-ALTITUDE DIVE' },
+    hold:   { alt: 28.0, speed: 1.12, temp: 194.2, power: 295.0, batt: 93.0, signal: -112.4, density: '8.4e6', press: 5.10, stateTag: 'STATION KEEPING' },
+    safe:   { alt: 88.4, speed: 0.95, temp: 175.0, power: 210.0, batt: 98.5, signal: -121.0, density: '1.1e5', press: 2.10, stateTag: 'SAFE / STANDBY' }
+  };
+
+  /* ==========================================================================
+     INITIALIZATION & CLOCK ENGINE
+     ========================================================================== */
+  document.addEventListener('DOMContentLoaded', () => {
+    startMETClock();
+    startTelemetryJitter();
+    initWaveformCanvas();
+    renderSoundingBars();
+    populateRawLogTable();
+    startOrbitAnimation();
+  });
+
+  // Ticking Mission Elapsed Time Clock
+  function startMETClock() {
+    setInterval(() => {
+      missionState.metSeconds++;
+      const days = Math.floor(missionState.metSeconds / 86400);
+      const hours = Math.floor((missionState.metSeconds % 86400) / 3600);
+      const mins = Math.floor((missionState.metSeconds % 3600) / 60);
+      const secs = missionState.metSeconds % 60;
+
+      const pad = (n) => String(n).padStart(2, '0');
+      const formatted = `${days}d ${pad(hours)}h ${pad(mins)}m ${pad(secs)}s`;
+      const clockEl = document.getElementById('met-clock');
+      if (clockEl) clockEl.textContent = formatted;
+    }, 1000);
+  }
+
+  /* ==========================================================================
+     REQUIREMENT #1: TAB SWITCHING CONTROL
+     ========================================================================== */
+  function switchMainTab(tabKey) {
+    // Update nav tab buttons
+    const buttons = document.querySelectorAll('.nav-btn');
+    buttons.forEach(btn => {
+      btn.classList.remove('active');
+      btn.setAttribute('aria-selected', 'false');
+    });
+
+    const activeBtn = document.getElementById(`tab-btn-${tabKey}`);
+    if (activeBtn) {
+      activeBtn.classList.add('active');
+      activeBtn.setAttribute('aria-selected', 'true');
+    }
+
+    // Update view panels
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.remove('active'));
+
+    const activeContent = document.getElementById(`view-${tabKey}`);
+    if (activeContent) {
+      activeContent.classList.add('active');
+    }
+
+    // Log user action to timeline
+    addTimelineEvent('SYSTEMS', `Operator switched primary view to [${tabKey.toUpperCase()}]`);
+  }
+
+  /* ==========================================================================
+     REQUIREMENT #2: PROBE OPERATIONAL STATE CONTROL
+     ========================================================================== */
+  function setOperationalState(stateKey) {
+    if (!modeTargets[stateKey]) return;
+    missionState.operationalMode = stateKey;
+
+    // Highlight state buttons
+    ['survey', 'dive', 'hold', 'safe'].forEach(k => {
+      const btn = document.getElementById(`op-btn-${k}`);
+      if (btn) btn.classList.toggle('active', k === stateKey);
+    });
+
+    // Update tags
+    const stateTag = document.getElementById('current-op-state-tag');
+    if (stateTag) stateTag.textContent = modeTargets[stateKey].stateTag;
+
+    const hudMode = document.getElementById('hud-mode-display');
+    if (hudMode) hudMode.textContent = stateKey.toUpperCase();
+
+    // Log to events timeline
+    addTimelineEvent('COMMAND', `Probe operational mode switched to <strong>${modeTargets[stateKey].stateTag}</strong>`);
+
+    // Visually update orbital path scaling on SVG
+    const orbitEllipse = document.getElementById('orbit-ellipse');
+    if (orbitEllipse) {
+      if (stateKey === 'dive') {
+        orbitEllipse.setAttribute('rx', '180');
+        orbitEllipse.setAttribute('ry', '120');
+      } else if (stateKey === 'safe') {
+        orbitEllipse.setAttribute('rx', '300');
+        orbitEllipse.setAttribute('ry', '200');
+      } else {
+        orbitEllipse.setAttribute('rx', '260');
+        orbitEllipse.setAttribute('ry', '170');
+      }
+    }
+  }
+
+  /* ==========================================================================
+     REQUIREMENT #3: TELEMETRY & VISUALIZATION CONTROL
+     ========================================================================== */
+  function setVizRenderMode(modeKey) {
+    missionState.vizMode = modeKey;
+
+    // Update toolbar buttons
+    ['orbital', 'thermal', 'radar', 'mesh'].forEach(m => {
+      const btn = document.getElementById(`viz-btn-${m}`);
+      if (btn) btn.classList.toggle('active', m === modeKey);
+    });
+
+    // Toggle graphic elements on SVG visualization
+    const thermalOverlay = document.getElementById('svg-thermal-overlay');
+    const subsurfaceSlice = document.getElementById('svg-subsurface-slice');
+    const coordGrid = document.getElementById('svg-coord-grid');
+
+    if (thermalOverlay) thermalOverlay.setAttribute('opacity', modeKey === 'thermal' ? '0.85' : '0');
+    if (subsurfaceSlice) subsurfaceSlice.setAttribute('opacity', modeKey === 'radar' ? '1' : '0');
+    if (coordGrid) coordGrid.setAttribute('stroke', modeKey === 'mesh' ? '#00f0ff' : 'rgba(0, 240, 255, 0.15)');
+
+    addTimelineEvent('VISUALIZER', `SVG Render Mode changed to [${modeKey.toUpperCase()}]`);
+  }
+
+  function toggleVizOverlay(overlayKey) {
+    missionState.vizOverlays[overlayKey] = !missionState.vizOverlays[overlayKey];
+    const btn = document.getElementById(`overlay-btn-${overlayKey}`);
+    if (btn) btn.classList.toggle('active', missionState.vizOverlays[overlayKey]);
+
+    if (overlayKey === 'plumes') {
+      const plumes = document.getElementById('svg-plumes-layer');
+      if (plumes) plumes.style.display = missionState.vizOverlays.plumes ? 'block' : 'none';
+    } else if (overlayKey === 'orbit') {
+      const orbit = document.getElementById('svg-orbit-layer');
+      if (orbit) orbit.style.display = missionState.vizOverlays.orbit ? 'block' : 'none';
+    } else if (overlayKey === 'grid') {
+      const grid = document.getElementById('svg-grid-layer');
+      if (grid) grid.style.display = missionState.vizOverlays.grid ? 'block' : 'none';
+    }
+  }
+
+  function updateRadarFreq(val) {
+    missionState.radarFrequency = val;
+    const display = document.getElementById('radar-freq-val');
+    if (display) display.textContent = `${val} Hz`;
+    renderSoundingBars();
+  }
+
+  function toggleBurstTelemetry() {
+    missionState.burstTelemetry = !missionState.burstTelemetry;
+    const btn = document.getElementById('btn-toggle-burst');
+    if (btn) {
+      btn.textContent = missionState.burstTelemetry ? 'ENABLED (1000Hz)' : 'DISABLED';
+      btn.classList.toggle('active', missionState.burstTelemetry);
+    }
+    addTimelineEvent('TELEMETRY', `Burst telemetry mode ${missionState.burstTelemetry ? 'ACTIVATED' : 'DEACTIVATED'}`);
+  }
+
+  // Interactive Laser Sounding Ping Action
+  function fireSoundingLaser() {
+    const laserBeam = document.getElementById('sounding-beam-line');
+    const laserStatus = document.getElementById('hud-laser-status');
+    const pingRing = document.getElementById('probe-ping-ring');
+
+    if (laserStatus) laserStatus.textContent = 'TRANSMITTING...';
+    
+    if (laserBeam) {
+      laserBeam.setAttribute('opacity', '1');
+      setTimeout(() => laserBeam.setAttribute('opacity', '0'), 800);
+    }
+
+    if (pingRing) {
+      pingRing.setAttribute('opacity', '1');
+      pingRing.setAttribute('r', '24');
+      setTimeout(() => {
+        pingRing.setAttribute('opacity', '0');
+        pingRing.setAttribute('r', '12');
+      }, 800);
+    }
+
+    setTimeout(() => {
+      if (laserStatus) laserStatus.textContent = 'READY';
+    }, 1200);
+
+    // Dynamic telemetry bump
+    addTimelineEvent('RADAR', `⚡ Subsurface sounder ping fired at Cairo Sulcus. Sounding echo depth: 21.4 km.`);
+  }
+
+  /* ==========================================================================
+     REQUIREMENT #4: DISMISSIBLE ANOMALY WARNING CONTROL
+     ========================================================================== */
+  function dismissAnomalyBanner() {
+    const banner = document.getElementById('anomaly-banner');
+    const chip = document.getElementById('anomaly-chip');
+    
+    if (banner) banner.classList.add('dismissed');
+    if (chip) chip.classList.add('visible');
+
+    missionState.anomalyDismissed = true;
+    addTimelineEvent('AUDIT', 'Operator acknowledged and dismissed anomaly notification [SECTOR 7-C]');
+  }
+
+  function restoreAnomalyBanner() {
+    const banner = document.getElementById('anomaly-banner');
+    const chip = document.getElementById('anomaly-chip');
+
+    if (banner) banner.classList.remove('dismissed');
+    if (chip) chip.classList.remove('visible');
+
+    missionState.anomalyDismissed = false;
+  }
+
+  /* ==========================================================================
+     REAL-TIME TELEMETRY JITTER & SIMULATION ENGINE
+     ========================================================================== */
+  function startTelemetryJitter() {
+    setInterval(() => {
+      const target = modeTargets[missionState.operationalMode];
+      
+      // Jitter values slightly
+      const altJitter = (target.alt + (Math.random() * 0.4 - 0.2)).toFixed(1);
+      const speedJitter = (target.speed + (Math.random() * 0.02 - 0.01)).toFixed(2);
+      const tempJitter = (target.temp + (Math.random() * 0.8 - 0.4)).toFixed(1);
+      const powerJitter = (target.power + (Math.random() * 0.6 - 0.3)).toFixed(1);
+      const signalJitter = (target.signal + (Math.random() * 0.4 - 0.2)).toFixed(1);
+
+      // DOM Updates
+      const altEl = document.getElementById('tel-alt');
+      const speedEl = document.getElementById('tel-speed');
+      const tempEl = document.getElementById('tel-temp');
+      const powerEl = document.getElementById('tel-power');
+      const signalEl = document.getElementById('tel-signal');
+
+      if (altEl) altEl.textContent = altJitter;
+      if (speedEl) speedEl.textContent = speedJitter;
+      if (tempEl) tempEl.textContent = tempJitter;
+      if (powerEl) powerEl.textContent = powerJitter;
+      if (signalEl) signalEl.textContent = signalJitter;
+
+      // Update progress bars
+      const barAlt = document.getElementById('bar-alt');
+      if (barAlt) barAlt.style.width = `${Math.min(100, (altJitter / 90) * 100)}%`;
+
+    }, missionState.burstTelemetry ? 300 : 1200);
+  }
+
+  /* ==========================================================================
+     ORBIT ANIMATION ON SVG
+     ========================================================================== */
+  function startOrbitAnimation() {
+    const probeMarker = document.getElementById('probe-marker');
+    const beamLine = document.getElementById('sounding-beam-line');
+
+    setInterval(() => {
+      missionState.probePositionDeg = (missionState.probePositionDeg + 0.5) % 360;
+      const rad = (missionState.probePositionDeg * Math.PI) / 180;
+      
+      // Ellipse Math: cx=400, cy=270, rx=260, ry=170
+      const x = 400 + 260 * Math.cos(rad);
+      const y = 270 + 170 * Math.sin(rad);
+
+      if (probeMarker) {
+        probeMarker.setAttribute('transform', `translate(${x.toFixed(1)}, ${y.toFixed(1)})`);
+      }
+      if (beamLine) {
+        beamLine.setAttribute('x1', x.toFixed(1));
+        beamLine.setAttribute('y1', y.toFixed(1));
+      }
+    }, 50);
+  }
+
+  /* ==========================================================================
+     HELPER RENDERERS (WAVEFORM & SOUNDING BARS & TIMELINE)
+     ========================================================================== */
+  function addTimelineEvent(tag, text) {
+    const container = document.getElementById('timeline-list');
+    if (!container) return;
+
+    const days = Math.floor(missionState.metSeconds / 86400);
+    const hours = Math.floor((missionState.metSeconds % 86400) / 3600);
+    const mins = Math.floor((missionState.metSeconds % 3600) / 60);
+    const pad = (n) => String(n).padStart(2, '0');
+    const timeStr = `MET ${days}d ${pad(hours)}:${pad(mins)}`;
+
+    const item = document.createElement('div');
+    item.className = 'timeline-item';
+    item.innerHTML = `
+      <div class="timeline-timestamp">
+        <span class="timeline-tag">${tag}</span>
+        <span class="tabular">${timeStr}</span>
+      </div>
+      <div class="timeline-text">${text}</div>
+    `;
+
+    container.insertBefore(item, container.firstChild);
+  }
+
+  function initWaveformCanvas() {
+    const canvas = document.getElementById('signal-waveform');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    function draw() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+
+      const sliceWidth = canvas.width / 60;
+      let x = 0;
+      const time = Date.now() * 0.005;
+
+      for (let i = 0; i < 60; i++) {
+        const y = (canvas.height / 2) + Math.sin(i * 0.2 + time) * 14 + (Math.random() * 4 - 2);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+        x += sliceWidth;
+      }
+      ctx.stroke();
+
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+  function renderSoundingBars() {
+    const container = document.getElementById('sounding-bars-wrapper');
+    if (!container) return;
+
+    container.innerHTML = '';
+    const numBars = 32;
+    for (let i = 0; i < numBars; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'sounding-bar';
+      
+      // Height profile simulating ice thickness echo spikes
+      let h = Math.sin(i * 0.3) * 35 + 45 + Math.random() * 15;
+      if (i === 18) h = 95; // Ice ocean boundary spike
+      if (i === 28) h = 88; // Subsurface thermal vent spike
+
+      bar.style.height = `${h}%`;
+      bar.setAttribute('data-val', `${Math.round(h)}dB`);
+      container.appendChild(bar);
+    }
+  }
+
+  function populateRawLogTable() {
+    const tbody = document.getElementById('raw-log-tbody');
+    if (!tbody) return;
+
+    const logs = [
+      { id: 'PKT-94821', met: '142d 18:41:00', sys: 'INMS', summary: 'Spectrometer isotopic ratio 18O/16O = 2.005e-3', crc: '0x8F2A' },
+      { id: 'PKT-94820', met: '142d 18:38:12', sys: 'THERM', summary: 'CRITICAL: Cairo Sulcus thermal transducer overflow (+48.6K)', crc: '0xE119' },
+      { id: 'PKT-94819', met: '142d 18:30:00', sys: 'NAV', summary: 'Attitude determination filter converged (RMS error 0.002deg)', crc: '0x4B90' },
+      { id: 'PKT-94818', met: '142d 18:15:22', sys: 'COMMS', summary: 'DSS-14 lock transition to Ka-band carrier 32.05 GHz', crc: '0x99A1' },
+      { id: 'PKT-94817', met: '142d 18:00:00', sys: 'POWER', summary: 'RTG core telemetry nominal (284.2W total output)', crc: '0x12F8' }
+    ];
+
+    tbody.innerHTML = logs.map(l => `
+      <tr>
+        <td><code>${l.id}</code></td>
+        <td>${l.met}</td>
+        <td><span class="timeline-tag">${l.sys}</span></td>
+        <td>${l.summary}</td>
+        <td><code>${l.crc}</code></td>
+      </tr>
+    `).join('');
+  }
+
+  /* Keyboard Shortcuts */
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '1') switchMainTab('orbital');
+    if (e.key === '2') switchMainTab('thermal');
+    if (e.key === '3') switchMainTab('radar');
+    if (e.key === '4') switchMainTab('logs');
+    if (e.key === 'Escape') dismissAnomalyBanner();
+  });
+</script>
+
+</body>
+</html>

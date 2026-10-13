@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>ORBITAL 09 · EN-09 NEREID</title>
+<style>
+  :root {
+    --bg: #081018;
+    --panel: #0e1824;
+    --panel-2: #12202e;
+    --ink: #e8eef4;
+    --text: #c5d2de;
+    --muted: #a9b9c9;
+    --line: #6e8a9e;
+    --cyan: #9ee4ee;
+    --cyan-ink: #d7f6fa;
+    --amber: #f2c98a;
+    --amber-ink: #f6ead4;
+    --amber-line: #c4924a;
+    --amber-bg: #1c160f;
+    --select: #143238;
+    --font: "Segoe UI", system-ui, sans-serif;
+    --mono: "Cascadia Mono", "Cascadia Code", ui-monospace, Consolas, "Liberation Mono", monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  [hidden] { display: none !important; }
+
+  html { background: var(--bg); }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.45;
+    background:
+      radial-gradient(980px 560px at 6% -12%, rgba(94, 150, 168, 0.18), transparent 58%),
+      radial-gradient(720px 460px at 108% -8%, rgba(196, 146, 74, 0.08), transparent 46%),
+      var(--bg);
+  }
+
+  button, input, label { font: inherit; }
+
+  button { cursor: pointer; }
+
+  :focus { outline: none; }
+
+  :focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 3px;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .skip {
+    position: absolute;
+    left: 16px;
+    top: -48px;
+    z-index: 5;
+    background: var(--cyan);
+    color: #081018;
+    padding: 8px 12px;
+    text-decoration: none;
+    font-weight: 650;
+  }
+
+  .skip:focus { top: 12px; }
+
+  .page {
+    width: min(1440px, calc(100% - 48px));
+    margin: 0 auto;
+    padding: 18px 0 28px;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .kicker {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 650;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .mono {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mast {
+    display: grid;
+    grid-template-columns: auto minmax(160px, auto) 1fr auto;
+    gap: 22px 28px;
+    align-items: center;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(110, 138, 158, 0.45);
+  }
+
+  .brand {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .brand svg { display: block; }
+
+  .brand-name {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: 0.16em;
+  }
+
+  .brand-sub {
+    margin: 2px 0 0;
+    color: var(--text);
+    font-size: 13px;
+  }
+
+  .mission-id { min-width: 0; }
+
+  .mission-id strong {
+    display: block;
+    margin-top: 3px;
+    font-size: 18px;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+  }
+
+  .mission-id span {
+    color: var(--text);
+    font-weight: 450;
+  }
+
+  .nav { justify-self: end; }
+
+  fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-inline-size: 0;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 2px;
+  }
+
+  .tab {
+    position: relative;
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .tab:hover { color: var(--ink); }
+
+  .tab:has(input:checked) {
+    color: var(--ink);
+    box-shadow: inset 0 -2px 0 var(--cyan);
+  }
+
+  .tab:focus-within {
+    outline: 2px solid var(--cyan);
+    outline-offset: 2px;
+  }
+
+  .clocks {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  .clock {
+    margin: 0;
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+  }
+
+  .clock b {
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mast-tools {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .pill {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .pill i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--cyan);
+    display: block;
+  }
+
+  .pill-safe i { background: var(--amber); }
+
+  body:has(#mode-survey:checked) .pill-survey,
+  body:has(#mode-hold:checked) .pill-hold,
+  body:has(#mode-safe:checked) .pill-safe { display: flex; }
+
+  .ghost {
+    background: transparent;
+    color: var(--amber);
+    border: 1px solid var(--amber-line);
+    padding: 8px 12px;
+    min-height: 40px;
+  }
+
+  .ghost:hover { background: #2a2116; }
+
+  .alert {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 16px 18px;
+    align-items: center;
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-line);
+    border-left-width: 4px;
+  }
+
+  .alert-kicker {
+    margin: 0 0 4px;
+    color: var(--amber);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .alert p { margin: 0; color: var(--amber-ink); }
+
+  .alert-mark {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--amber-line);
+    color: var(--amber);
+    display: grid;
+    place-items: center;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  #workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  #panel-survey {
+    display: grid;
+    grid-template-columns: minmax(0, 1.42fr) minmax(300px, 0.78fr);
+    gap: 16px;
+    margin-top: 16px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  #panel-telemetry,
+  #panel-trajectory,
+  #panel-log { display: none; margin-top: 16px; }
+
+  body:has(#view-telemetry:checked) #panel-survey,
+  body:has(#view-trajectory:checked) #panel-survey,
+  body:has(#view-log:checked) #panel-survey { display: none; }
+
+  body:has(#view-telemetry:checked) #panel-telemetry { display: block; }
+  body:has(#view-trajectory:checked) #panel-trajectory { display: grid; }
+  body:has(#view-log:checked) #panel-log { display: block; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid rgba(110, 138, 158, 0.55);
+    padding: 18px 20px 20px;
+    min-width: 0;
+  }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stage-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(138, 164, 184, 0.09) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(138, 164, 184, 0.09) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(circle at 42% 48%, #000 18%, transparent 72%);
+    pointer-events: none;
+  }
+
+  .stage-bar, .readouts, .stage-frame { position: relative; z-index: 1; }
+
+  .layer-line { display: none; margin: 4px 0 0; color: var(--text); font-size: 14px; }
+  .is-thermal { display: block; }
+  body:has(#layer-path:checked) .is-thermal { display: none; }
+  body:has(#layer-path:checked) .is-path { display: block; }
+  body:has(#layer-relief:checked) .is-thermal,
+  body:has(#layer-relief:checked) .is-path { display: none; }
+  body:has(#layer-relief:checked) .is-relief { display: block; }
+
+  .stage-bar {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: baseline;
+  }
+
+  .stage-bar h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .note { margin: 0; color: var(--text); font-size: 14px; max-width: 46ch; text-align: right; }
+  .note-hold, .note-safe, .still-only { display: none; }
+
+  body:has(#mode-hold:checked) .note-run { display: none; }
+  body:has(#mode-hold:checked) .note-hold { display: block; }
+  body:has(#mode-safe:checked) .note-run,
+  body:has(#mode-safe:checked) .note-hold { display: none; }
+  body:has(#mode-safe:checked) .note-safe { display: block; }
+
+  .stage-frame {
+    position: relative;
+    flex: 1;
+    min-height: 280px;
+  }
+
+  .stage-frame svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .readouts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin: 0;
+    padding-top: 12px;
+    border-top: 1px solid rgba(110, 138, 158, 0.35);
+  }
+
+  .readouts div { min-width: 0; }
+  .readouts dt { margin: 0; color: var(--muted); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .readouts dd { margin: 4px 0 0; font-family: var(--mono); font-size: 16px; }
+
+  .side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+  .status { border-top: 2px solid var(--cyan); }
+
+  .phase-name {
+    margin: 8px 0 6px;
+    color: var(--ink);
+    font-size: clamp(32px, 3vw, 42px);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    font-weight: 600;
+  }
+
+  .phase-copy { display: none; margin: 0; }
+  .phase-copy:not(.phase-name) { color: var(--text); font-size: 15px; }
+  .phase-survey { display: block; }
+
+  body:has(#mode-hold:checked) .phase-survey { display: none; }
+  body:has(#mode-hold:checked) .phase-hold { display: block; }
+  body:has(#mode-safe:checked) .phase-survey,
+  body:has(#mode-safe:checked) .phase-hold { display: none; }
+  body:has(#mode-safe:checked) .phase-safe { display: block; }
+
+  .elapsed {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    margin: 14px 0 6px;
+  }
+
+  .elapsed span { display: flex; align-items: baseline; gap: 6px; }
+
+  .elapsed b {
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    min-width: 2ch;
+    text-align: right;
+  }
+
+  #met-d { min-width: 3ch; }
+
+  .unit { color: var(--muted); font-size: 13px; letter-spacing: 0.06em; }
+
+  .sample-line { margin: 0; color: var(--text); font-size: 14px; }
+
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .metric { background: var(--panel); border: 1px solid rgba(110, 138, 158, 0.55); padding: 14px 14px 16px; min-width: 0; }
+
+  .metric-value {
+    margin: 8px 0 4px;
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .metric p { margin: 0; color: var(--text); font-size: 13.5px; }
+
+  .metric--watch {
+    background: var(--amber-bg);
+    border-color: var(--amber-line);
+    border-top: 2px solid var(--amber-line);
+  }
+
+  .metric--watch .kicker { color: var(--amber); }
+
+  .datum-center { display: none; }
+
+  body:has(#datum-center:checked) .datum-surface { display: none; }
+  body:has(#datum-center:checked) .datum-center { display: revert; }
+
+  .dock {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.05fr) minmax(260px, 0.8fr);
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .events { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+
+  .event {
+    display: grid;
+    grid-template-columns: 148px 1fr;
+    gap: 2px 14px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(110, 138, 158, 0.35);
+  }
+
+  .event time {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--cyan-ink);
+  }
+
+  .event--watch time { color: var(--amber); }
+
+  .event-title { margin: 0; font-weight: 650; }
+  .event-body { margin: 0; grid-column: 2; color: var(--text); font-size: 14.5px; }
+
+  .dock-log .event:nth-child(n + 5) { display: none; }
+
+  .controls { display: flex; flex-direction: column; gap: 10px; }
+
+  .control-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 12px;
+  }
+
+  .ctrl legend {
+    margin-bottom: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 650;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .segment { display: flex; border: 1px solid var(--line); }
+
+  .segment label {
+    position: relative;
+    flex: 1;
+    text-align: center;
+    padding: 7px 6px;
+    color: var(--text);
+    cursor: pointer;
+    min-height: 40px;
+  }
+
+  .segment label + label { border-left: 1px solid var(--line); }
+  .segment label:hover { background: #122430; color: var(--ink); }
+
+  .segment label:has(input:checked) {
+    background: var(--select);
+    color: var(--ink);
+  }
+
+  .segment label:focus-within {
+    outline: 2px solid var(--cyan);
+    outline-offset: -2px;
+    z-index: 1;
+  }
+
+  .result-row { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: center; }
+
+  .swatch { width: 64px; height: 64px; background: #0b141e; border: 1px solid rgba(110, 138, 158, 0.55); }
+  .swatch-moon { fill: #d5e6ea; }
+  .swatch .plume { fill: #e0a85a; }
+  .swatch .probe-body { fill: var(--cyan); }
+
+  #result { margin: 0; color: var(--text); font-size: 14.5px; }
+
+  .mark {
+    background: var(--select);
+    color: var(--ink);
+    border: 1px solid var(--cyan);
+    min-height: 42px;
+    padding: 8px 12px;
+  }
+
+  .mark:hover { background: #184048; }
+
+  .comms p { margin: 8px 0 0; color: var(--text); }
+  .comms .lead { margin-top: 12px; color: var(--ink); font-size: 20px; }
+
+  .cd { display: none; margin: 8px 0 0; color: var(--cyan-ink); font-family: var(--mono); font-size: 14px; }
+
+  body:has(#mode-survey:checked):has(#interval-1:checked) .cd-survey-1,
+  body:has(#mode-survey:checked):has(#interval-4:checked) .cd-survey-4,
+  body:has(#mode-survey:checked):has(#interval-16:checked) .cd-survey-16,
+  body:has(#mode-hold:checked):has(#interval-1:checked) .cd-hold-1,
+  body:has(#mode-hold:checked):has(#interval-4:checked) .cd-hold-4,
+  body:has(#mode-hold:checked):has(#interval-16:checked) .cd-hold-16,
+  body:has(#mode-safe:checked):has(#interval-1:checked) .cd-safe-1,
+  body:has(#mode-safe:checked):has(#interval-4:checked) .cd-safe-4,
+  body:has(#mode-safe:checked):has(#interval-16:checked) .cd-safe-16 { display: block; }
+
+  .sheet-head { margin-bottom: 16px; }
+  .sheet-head h2 { margin: 6px 0; font-size: 32px; letter-spacing: -0.03em; font-weight: 600; }
+  .sheet-head p { margin: 0; color: var(--text); max-width: 68ch; }
+
+  .band {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 6px 28px;
+    align-items: center;
+    padding: 16px 18px;
+    margin-top: 12px;
+    background: var(--panel);
+    border: 1px solid rgba(110, 138, 158, 0.55);
+  }
+
+  .band--watch { background: var(--amber-bg); border-color: var(--amber-line); }
+  .band--watch .kicker { color: var(--amber); }
+
+  .band-value {
+    margin: 4px 0 0;
+    font-family: var(--mono);
+    font-size: 34px;
+    letter-spacing: -0.03em;
+  }
+
+  .bar {
+    height: 4px;
+    margin-top: 10px;
+    background: #1c2c3a;
+  }
+
+  .bar span { display: block; height: 100%; background: var(--cyan); }
+  .band--watch .bar { background: #3a2c1c; }
+  .band--watch .bar span { background: var(--amber-line); }
+
+  #panel-trajectory {
+    grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.75fr);
+    gap: 16px;
+  }
+
+  .traj-frame { min-height: 520px; }
+  .traj-frame svg { width: 100%; height: auto; display: block; }
+
+  .elements { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; margin: 16px 0 0; }
+  .elements div { border-top: 1px solid rgba(110, 138, 158, 0.35); padding-top: 8px; }
+  .elements dt { margin: 0; color: var(--muted); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .elements dd { margin: 4px 0 0; font-family: var(--mono); font-size: 18px; }
+
+  .fine { margin: 16px 0 0; color: var(--text); font-size: 14.5px; }
+
+  .log-list { max-width: 820px; }
+  .log-list .event-body { max-width: 62ch; }
+
+  .orbit { fill: none; stroke: #7ed0dc; stroke-width: 1.4; }
+  .node { fill: #d7f6fa; }
+  .node-label { fill: #a9b9c9; font-size: 12px; font-family: var(--mono); }
+  .bearing { fill: #a9b9c9; font-size: 11px; font-family: var(--mono); }
+  .star { fill: #d7e4ee; }
+  .stripe { fill: none; stroke: #3e5968; stroke-width: 1.7; stroke-linecap: round; }
+  .crater { fill: none; stroke: #2c4554; stroke-width: 1.1; opacity: 0.55; }
+  .plume { opacity: 0; }
+  .probe-ring { fill: none; stroke: #9ee4ee; stroke-width: 1.25; }
+  .probe-head { stroke: #9ee4ee; stroke-width: 1.25; }
+  .probe-body { fill: #9ee4ee; }
+  .limb { fill: none; stroke: #e7f2f5; stroke-width: 1; opacity: 0.45; }
+
+  body:has(#layer-thermal:checked) .plume { opacity: 1; }
+  body:has(#layer-thermal:checked) .stripe { stroke: #c4924a; stroke-width: 2.15; }
+  body:has(#layer-path:checked) .orbit { stroke-width: 2.1; }
+  body:has(#layer-relief:checked) .orbit { opacity: 0.32; }
+  body:has(#layer-relief:checked) .stripe { stroke: #1a2c38; stroke-width: 2.7; }
+  body:has(#layer-relief:checked) .crater { opacity: 1; stroke: #16303c; stroke-width: 1.5; }
+  body:has(#mode-safe:checked) .orbit { opacity: 0.4; }
+  body:has(#mode-safe:checked) .probe-body { fill: #f2c98a; }
+  body:has(#mode-safe:checked) .probe-ring,
+  body:has(#mode-safe:checked) .probe-head { stroke: #f2c98a; }
+  body:has(#mode-hold:checked) .probe-body { fill: #e8eef4; }
+  body:has(#mode-hold:checked) .probe-ring,
+  body:has(#mode-hold:checked) .probe-head { stroke: #e8eef4; }
+
+  .safe-note { display: none; }
+  body:has(#mode-safe:checked) .live-note { display: none; }
+  body:has(#mode-safe:checked) .safe-note { display: inline; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .motion-only { display: none !important; }
+    .still-only { display: block !important; }
+    .note-hold, .note-safe { display: none !important; }
+  }
+
+  @media (max-width: 1100px) {
+    .mast { grid-template-columns: 1fr auto; }
+    .nav { grid-column: 1 / -1; justify-self: start; }
+    #panel-survey, #panel-trajectory, .dock { grid-template-columns: 1fr; }
+    .stage { min-height: 0; }
+  }
+
+  @media (max-width: 720px) {
+    .page { width: min(1440px, calc(100% - 28px)); }
+    .alert, .band, .event { grid-template-columns: 1fr; }
+    .event-body { grid-column: 1; }
+    .stage-frame { min-height: 240px; }
+    .stage-frame svg { position: relative; height: auto; }
+    .note { text-align: left; }
+    .clocks { align-items: flex-end; }
+    .tabs { overflow-x: auto; max-width: 100%; }
+    .readouts { grid-template-columns: 1fr 1fr; }
+    .result-row { grid-template-columns: 72px 1fr; }
+  }
+
+  @media (max-width: 560px) {
+    .metrics, .elements { grid-template-columns: 1fr; }
+    .mast { gap: 14px; }
+  }
+
+  @media (forced-colors: active) {
+    .metric--watch, .band--watch, .alert { border: 1px solid CanvasText; }
+    .segment, .mark, .ghost { border: 1px solid ButtonText; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#workspace">Skip to mission workspace</a>
+<div class="page">
+  <header class="mast">
+    <div class="brand">
+      <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true">
+        <circle cx="18" cy="18" r="12" fill="none" stroke="#9ee4ee" stroke-width="1.4"/>
+        <circle cx="18" cy="18" r="2.4" fill="#9ee4ee"/>
+        <path d="M18 2.5 v4.5 M18 29 v4.5 M2.5 18 h4.5 M29 18 h4.5" stroke="#8aa4b8" stroke-width="1.2"/>
+      </svg>
+      <div>
+        <p class="brand-name">ORBITAL 09</p>
+        <p class="brand-sub">Halo station, Enceladus</p>
+      </div>
+    </div>
+    <div class="mission-id">
+      <p class="kicker">Mission</p>
+      <strong>EN-09 <span>NEREID</span></strong>
+    </div>
+    <nav class="nav" aria-label="Mission sections">
+      <fieldset class="tabs">
+        <legend class="visually-hidden">Mission section</legend>
+        <label class="tab">Survey<input class="visually-hidden" type="radio" name="view" id="view-survey" value="survey" checked></label>
+        <label class="tab">Telemetry<input class="visually-hidden" type="radio" name="view" id="view-telemetry" value="telemetry"></label>
+        <label class="tab">Trajectory<input class="visually-hidden" type="radio" name="view" id="view-trajectory" value="trajectory"></label>
+        <label class="tab">Log<input class="visually-hidden" type="radio" name="view" id="view-log" value="log"></label>
+      </fieldset>
+    </nav>
+    <div class="mast-tools">
+      <div class="clocks">
+        <p class="pill pill-survey"><i></i> HALO-09 lock</p>
+        <p class="pill pill-hold"><i></i> HALO-09 hold</p>
+        <p class="pill pill-safe"><i></i> HALO-09 safe</p>
+        <p class="clock"><span class="kicker">MET</span> <b id="mast-met">—</b></p>
+        <p class="clock"><span class="kicker">UTC</span> <b id="utc">—</b></p>
+      </div>
+      <button type="button" class="ghost" id="restore" hidden>Restore THERM-04</button>
+    </div>
+  </header>
+
+  <div class="alert" id="alert" role="region" aria-labelledby="alert-title">
+    <div class="alert-mark" aria-hidden="true">04</div>
+    <div>
+      <p class="alert-kicker" id="alert-title">Thermal watch · THERM-04</p>
+      <p>Baghdad Sulcus is 14.2 K above its 172.2 K fracture baseline. TI-2 read 186.4 K in sample SMP-09-184-0714. The plains nearby stayed near 75 K. This is an environmental watch, not a bus fault.</p>
+    </div>
+    <button type="button" class="ghost" id="dismiss">Shelve watch</button>
+  </div>
+
+  <main id="workspace">
+    <div id="panel-survey">
+      <section class="panel stage" aria-labelledby="stage-title">
+        <div class="stage-grid" aria-hidden="true"></div>
+        <div class="stage-bar">
+          <div>
+            <h2 id="stage-title">Enceladus</h2>
+            <p class="layer-line is-thermal">Baghdad Sulcus · TI-2 · 186.4 K</p>
+            <p class="layer-line is-path">Periapsis 171.2 km · apoapsis 198.4 km · drawing exaggerated</p>
+            <p class="layer-line is-relief">Damascus, Baghdad, Cairo, and Alexandria Sulci</p>
+          </div>
+          <p class="note note-run motion-only">Schematic advancing. One plotted orbit takes 48 seconds.</p>
+          <p class="note note-hold">Schematic held. The marker stays where the survey left it.</p>
+          <p class="note note-safe">Schematic held. The marker is amber while instruments are isolated.</p>
+          <p class="note still-only">Shown at the THERM-04 pass. Motion is off on this console.</p>
+        </div>
+        <div class="stage-frame">
+          <svg viewBox="70 40 560 500" role="img" aria-labelledby="viz-title viz-desc">
+            <title id="viz-title">Enceladus and the NEREID orbit</title>
+            <desc id="viz-desc">A schematic of Enceladus with the south-polar tiger stripes, a thermal footprint at Baghdad Sulcus, and NEREID on an exaggerated orbit.</desc>
+            <defs>
+              <radialGradient id="ice-a" cx="36%" cy="32%" r="72%">
+                <stop offset="0%" stop-color="#f7fcfd"/>
+                <stop offset="40%" stop-color="#d5e7ec"/>
+                <stop offset="72%" stop-color="#8eacb8"/>
+                <stop offset="100%" stop-color="#3c5563"/>
+              </radialGradient>
+              <linearGradient id="term-a" x1="0" y1="0" x2="1" y2="0.15">
+                <stop offset="0.42" stop-color="#061018" stop-opacity="0"/>
+                <stop offset="1" stop-color="#061018" stop-opacity="0.78"/>
+              </linearGradient>
+              <radialGradient id="heat-a" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#e7b15a" stop-opacity="0.9"/>
+                <stop offset="58%" stop-color="#c47a3a" stop-opacity="0.38"/>
+                <stop offset="100%" stop-color="#c47a3a" stop-opacity="0"/>
+              </radialGradient>
+              <clipPath id="clip-a"><circle cx="348" cy="292" r="118"/></clipPath>
+            </defs>
+            <g aria-hidden="true">
+              <circle class="star" cx="96" cy="78" r="1.1"/>
+              <circle class="star" cx="210" cy="64" r="0.8"/>
+              <circle class="star" cx="560" cy="88" r="1"/>
+              <circle class="star" cx="610" cy="150" r="0.7"/>
+              <circle class="star" cx="120" cy="510" r="0.9"/>
+              <circle class="star" cx="590" cy="500" r="1.1"/>
+            </g>
+            <g transform="translate(575 78)" aria-hidden="true">
+              <path d="M0 16 V0 l7 5" fill="none" stroke="#8aa4b8" stroke-width="1"/>
+              <text class="bearing" x="12" y="6">Saturn bearing</text>
+              <text class="bearing" x="12" y="20">041°</text>
+            </g>
+            <path id="orbit-a" class="orbit" d="M 402.6 482.3 L 394.3 484.6 L 385.9 486.6 L 377.6 488.4 L 369.1 489.9 L 360.7 491.2 L 352.2 492.3 L 343.7 493.1 L 335.3 493.6 L 326.8 494.0 L 318.4 494.0 L 310.0 493.9 L 301.7 493.5 L 293.4 492.8 L 285.2 491.9 L 277.0 490.7 L 269.0 489.3 L 261.0 487.7 L 253.2 485.8 L 245.4 483.7 L 237.8 481.4 L 230.3 478.8 L 223.0 476.0 L 215.8 473.0 L 208.8 469.7 L 201.9 466.3 L 195.3 462.6 L 188.8 458.7 L 182.5 454.6 L 176.4 450.4 L 170.5 445.9 L 164.8 441.2 L 159.4 436.4 L 154.2 431.4 L 149.2 426.2 L 144.5 420.8 L 140.0 415.3 L 135.7 409.6 L 131.8 403.8 L 128.0 397.9 L 124.6 391.8 L 121.4 385.6 L 118.5 379.3 L 115.9 372.9 L 113.6 366.4 L 111.5 359.8 L 109.8 353.1 L 108.3 346.4 L 107.1 339.5 L 106.2 332.7 L 105.6 325.7 L 105.4 318.8 L 105.4 311.7 L 105.6 304.7 L 106.2 297.7 L 107.1 290.6 L 108.3 283.6 L 109.8 276.5 L 111.5 269.5 L 113.6 262.5 L 115.9 255.6 L 118.5 248.6 L 121.4 241.8 L 124.6 235.0 L 128.1 228.3 L 131.8 221.6 L 135.7 215.0 L 140.0 208.6 L 144.5 202.2 L 149.2 195.9 L 154.2 189.8 L 159.4 183.8 L 164.9 177.9 L 170.5 172.1 L 176.4 166.5 L 182.5 161.1 L 188.8 155.8 L 195.3 150.7 L 202.0 145.7 L 208.8 140.9 L 215.8 136.3 L 223.0 131.9 L 230.4 127.7 L 237.8 123.7 L 245.5 119.9 L 253.2 116.3 L 261.0 113.0 L 269.0 109.8 L 277.1 106.9 L 285.2 104.2 L 293.4 101.7 L 301.7 99.4 L 310.1 97.4 L 318.4 95.6 L 326.9 94.1 L 335.3 92.8 L 343.8 91.7 L 352.3 90.9 L 360.7 90.4 L 369.2 90.0 L 377.6 90.0 L 386.0 90.1 L 394.3 90.5 L 402.6 91.2 L 410.8 92.1 L 419.0 93.3 L 427.0 94.7 L 435.0 96.3 L 442.8 98.2 L 450.6 100.3 L 458.2 102.6 L 465.7 105.2 L 473.0 108.0 L 480.2 111.0 L 487.2 114.3 L 494.1 117.7 L 500.7 121.4 L 507.2 125.3 L 513.5 129.4 L 519.6 133.6 L 525.5 138.1 L 531.2 142.8 L 536.6 147.6 L 541.8 152.6 L 546.8 157.8 L 551.5 163.2 L 556.0 168.7 L 560.3 174.4 L 564.2 180.2 L 568.0 186.1 L 571.4 192.2 L 574.6 198.4 L 577.5 204.7 L 580.1 211.1 L 582.4 217.6 L 584.5 224.2 L 586.2 230.9 L 587.7 237.6 L 588.9 244.5 L 589.8 251.3 L 590.4 258.3 L 590.6 265.2 L 590.6 272.3 L 590.4 279.3 L 589.8 286.3 L 588.9 293.4 L 587.7 300.4 L 586.2 307.5 L 584.5 314.5 L 582.4 321.5 L 580.1 328.4 L 577.5 335.4 L 574.6 342.2 L 571.4 349.0 L 567.9 355.7 L 564.2 362.4 L 560.3 369.0 L 556.0 375.4 L 551.5 381.8 L 546.8 388.1 L 541.8 394.2 L 536.6 400.2 L 531.1 406.1 L 525.5 411.9 L 519.6 417.5 L 513.5 422.9 L 507.2 428.2 L 500.7 433.3 L 494.0 438.3 L 487.2 443.1 L 480.2 447.7 L 473.0 452.1 L 465.6 456.3 L 458.2 460.3 L 450.5 464.1 L 442.8 467.7 L 435.0 471.0 L 427.0 474.2 L 418.9 477.1 L 410.8 479.8 L 402.6 482.3 Z"/>
+            <circle class="node" cx="584.5" cy="224.2" r="2.6"><title>Periapsis, 171.2 km altitude</title></circle>
+            <circle class="node" cx="111.5" cy="359.8" r="2.6"><title>Apoapsis, 198.4 km altitude</title></circle>
+            <g clip-path="url(#clip-a)">
+              <circle cx="348" cy="292" r="118" fill="url(#ice-a)"/>
+              <g class="craters">
+                <circle class="crater" cx="292" cy="246" r="16"/>
+                <circle class="crater" cx="400" cy="268" r="10"/>
+                <circle class="crater" cx="318" cy="318" r="7"/>
+                <circle class="crater" cx="424" cy="330" r="12"/>
+                <circle class="crater" cx="360" cy="230" r="5"/>
+              </g>
+              <g class="stripes">
+                <path class="stripe" d="M286 372 C322 390, 368 386, 412 362"/>
+                <path class="stripe" d="M278 388 C320 410, 372 404, 418 376"/>
+                <path class="stripe" d="M292 404 C330 422, 366 416, 400 396"/>
+                <path class="stripe" d="M314 416 C340 428, 368 422, 386 410"/>
+              </g>
+              <ellipse class="plume" cx="362" cy="398" rx="54" ry="30" fill="url(#heat-a)" transform="rotate(-14 362 398)"/>
+              <circle cx="348" cy="292" r="118" fill="url(#term-a)"/>
+            </g>
+            <circle class="limb" cx="348" cy="292" r="118"/>
+            <g class="probe" data-probe transform="translate(402.6 482.3)">
+              <line class="probe-head" x1="0" y1="0" x2="18" y2="0"/>
+              <circle class="probe-ring" r="8"/>
+              <circle class="probe-body" r="3.1"/>
+            </g>
+          </svg>
+        </div>
+        <dl class="readouts">
+          <div><dt>Latitude</dt><dd>89.2° S</dd></div>
+          <div><dt>Longitude</dt><dd>312.4° W</dd></div>
+          <div><dt class="datum-surface">Altitude</dt><dt class="datum-center">Radial</dt><dd><span class="datum-surface">184.6 km</span><span class="datum-center">436.7 km</span></dd></div>
+          <div><dt>Inclination</dt><dd>89.71°</dd></div>
+        </dl>
+      </section>
+
+      <div class="side">
+        <section class="panel status" aria-labelledby="status-title">
+          <h2 class="kicker" id="status-title">Mission status</h2>
+          <p class="phase-name phase-copy phase-survey">Subsurface survey</p>
+          <p class="phase-name phase-copy phase-hold">Orbit hold</p>
+          <p class="phase-name phase-copy phase-safe">Safe</p>
+          <p class="phase-copy phase-survey">South-polar circuit. Watch THERM-04 is open.</p>
+          <p class="phase-copy phase-hold">Attitude held. Science dump suspended. Carrier stays up.</p>
+          <p class="phase-copy phase-safe">Instruments isolated. Last thermal sample retained.</p>
+          <p class="elapsed" id="elapsed">
+            <span><b id="met-d">—</b><span class="unit">d</span></span>
+            <span><b id="met-h">—</b><span class="unit">h</span></span>
+            <span><b id="met-m">—</b><span class="unit">m</span></span>
+            <span><b id="met-s">—</b><span class="unit">s</span></span>
+          </p>
+          <p class="kicker">Elapsed since departure</p>
+          <p class="sample-line">Sample SMP-09-184-0714 · age <span data-age>—</span>. This console is not on a live feed.</p>
+        </section>
+        <div class="metrics">
+          <article class="metric">
+            <h3 class="kicker">Battery buffer</h3>
+            <p class="metric-value">71.4<span class="unit">%</span></p>
+            <p>RTG-A 106.4 W · buffer 28.1 V</p>
+          </article>
+          <article class="metric">
+            <h3 class="kicker">Signal</h3>
+            <p class="metric-value">−87.2<span class="unit">dBm</span></p>
+            <p>Ka-band at HALO-09 · margin 6.4 dB</p>
+          </article>
+          <article class="metric">
+            <h3 class="kicker datum-surface">Orbital altitude</h3>
+            <h3 class="kicker datum-center">Radial distance</h3>
+            <p class="metric-value"><span class="datum-surface">184.6</span><span class="datum-center">436.7</span><span class="unit">km</span></p>
+            <p class="datum-surface">Above the 252.1 km reference radius.</p>
+            <p class="datum-center">From the center of Enceladus.</p>
+          </article>
+          <article class="metric metric--watch">
+            <h3 class="kicker">Thermal · watch</h3>
+            <p class="metric-value">186.4<span class="unit">K</span></p>
+            <p><span class="live-note">+14.2 K vs the Baghdad baseline.</span><span class="safe-note">Sensor isolated. Sample retained.</span></p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <section id="panel-telemetry" aria-labelledby="tel-title">
+      <div class="sheet-head">
+        <p class="kicker">Sample record</p>
+        <h2 id="tel-title">SMP-09-184-0714</h2>
+        <p>Recorded at mission time 09-184 · 07:14:02. Age <span data-age>—</span>. Changing mode or interval below plans the link. It does not invent new measurements.</p>
+      </div>
+      <article class="band">
+        <div>
+          <h3 class="kicker">Battery buffer</h3>
+          <p class="band-value">71.4%</p>
+        </div>
+        <div>
+          <p>RTG-A provides 106.4 W. The battery is a peak-load buffer at 28.1 V, state of charge 71.4% when this sample was stored. Enceladus is too far from the Sun for a solar bus.</p>
+          <div class="bar" aria-hidden="true"><span style="width:71.4%"></span></div>
+        </div>
+      </article>
+      <article class="band">
+        <div>
+          <h3 class="kicker">Signal at HALO-09</h3>
+          <p class="band-value">−87.2 dBm</p>
+        </div>
+        <div>
+          <p>Ka-band relay hop. Margin 6.4 dB. Earth is a second hop from HALO-09 on X-band, one-way light time 84 min 12 s, range 10.13 AU at the sample.</p>
+          <div class="bar" aria-hidden="true"><span style="width:64%"></span></div>
+        </div>
+      </article>
+      <article class="band">
+        <div>
+          <h3 class="kicker datum-surface">Geometric altitude</h3>
+          <h3 class="kicker datum-center">Radial distance</h3>
+          <p class="band-value"><span class="datum-surface">184.6 km</span><span class="datum-center">436.7 km</span></p>
+        </div>
+        <div>
+          <p class="datum-surface">Height above the 252.1 km reference radius. Periapsis 171.2 km, apoapsis 198.4 km, period 5 h 56 min.</p>
+          <p class="datum-center">Center-referenced radius, 252.1 + 184.6 km. Use this when comparing the state vector, and surface altitude when comparing the ground track.</p>
+        </div>
+      </article>
+      <article class="band band--watch">
+        <div>
+          <h3 class="kicker">Thermal watch</h3>
+          <p class="band-value">186.4 K</p>
+        </div>
+        <div>
+          <p>TI-2 footprint on Baghdad Sulcus. Fracture baseline 172.2 K, delta +14.2 K. Damascus, Cairo, and Alexandria stayed within 1.1 K of their own baselines. Plains near 75 K are not part of the watch. <span class="safe-note">In safe mode the sensor is isolated and this card keeps the stored sample.</span></p>
+          <div class="bar" aria-hidden="true"><span style="width:71%"></span></div>
+        </div>
+      </article>
+    </section>
+
+    <section id="panel-trajectory" aria-labelledby="traj-title">
+      <div class="panel traj-frame">
+        <p class="kicker">Ground track</p>
+        <h2 id="traj-title">South-polar circuit</h2>
+        <svg viewBox="70 40 560 500" role="img" aria-labelledby="traj-viz">
+          <title id="traj-viz">NEREID orbit about Enceladus, eccentricity exaggerated</title>
+          <defs>
+            <radialGradient id="ice-b" cx="36%" cy="32%" r="72%">
+              <stop offset="0%" stop-color="#f7fcfd"/>
+              <stop offset="40%" stop-color="#d5e7ec"/>
+              <stop offset="72%" stop-color="#8eacb8"/>
+              <stop offset="100%" stop-color="#3c5563"/>
+            </radialGradient>
+            <linearGradient id="term-b" x1="0" y1="0" x2="1" y2="0.15">
+              <stop offset="0.42" stop-color="#061018" stop-opacity="0"/>
+              <stop offset="1" stop-color="#061018" stop-opacity="0.78"/>
+            </linearGradient>
+            <radialGradient id="heat-b" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#e7b15a" stop-opacity="0.9"/>
+              <stop offset="58%" stop-color="#c47a3a" stop-opacity="0.38"/>
+              <stop offset="100%" stop-color="#c47a3a" stop-opacity="0"/>
+            </radialGradient>
+            <clipPath id="clip-b"><circle cx="348" cy="292" r="118"/></clipPath>
+          </defs>
+          <path class="orbit" d="M 402.6 482.3 L 394.3 484.6 L 385.9 486.6 L 377.6 488.4 L 369.1 489.9 L 360.7 491.2 L 352.2 492.3 L 343.7 493.1 L 335.3 493.6 L 326.8 494.0 L 318.4 494.0 L 310.0 493.9 L 301.7 493.5 L 293.4 492.8 L 285.2 491.9 L 277.0 490.7 L 269.0 489.3 L 261.0 487.7 L 253.2 485.8 L 245.4 483.7 L 237.8 481.4 L 230.3 478.8 L 223.0 476.0 L 215.8 473.0 L 208.8 469.7 L 201.9 466.3 L 195.3 462.6 L 188.8 458.7 L 182.5 454.6 L 176.4 450.4 L 170.5 445.9 L 164.8 441.2 L 159.4 436.4 L 154.2 431.4 L 149.2 426.2 L 144.5 420.8 L 140.0 415.3 L 135.7 409.6 L 131.8 403.8 L 128.0 397.9 L 124.6 391.8 L 121.4 385.6 L 118.5 379.3 L 115.9 372.9 L 113.6 366.4 L 111.5 359.8 L 109.8 353.1 L 108.3 346.4 L 107.1 339.5 L 106.2 332.7 L 105.6 325.7 L 105.4 318.8 L 105.4 311.7 L 105.6 304.7 L 106.2 297.7 L 107.1 290.6 L 108.3 283.6 L 109.8 276.5 L 111.5 269.5 L 113.6 262.5 L 115.9 255.6 L 118.5 248.6 L 121.4 241.8 L 124.6 235.0 L 128.1 228.3 L 131.8 221.6 L 135.7 215.0 L 140.0 208.6 L 144.5 202.2 L 149.2 195.9 L 154.2 189.8 L 159.4 183.8 L 164.9 177.9 L 170.5 172.1 L 176.4 166.5 L 182.5 161.1 L 188.8 155.8 L 195.3 150.7 L 202.0 145.7 L 208.8 140.9 L 215.8 136.3 L 223.0 131.9 L 230.4 127.7 L 237.8 123.7 L 245.5 119.9 L 253.2 116.3 L 261.0 113.0 L 269.0 109.8 L 277.1 106.9 L 285.2 104.2 L 293.4 101.7 L 301.7 99.4 L 310.1 97.4 L 318.4 95.6 L 326.9 94.1 L 335.3 92.8 L 343.8 91.7 L 352.3 90.9 L 360.7 90.4 L 369.2 90.0 L 377.6 90.0 L 386.0 90.1 L 394.3 90.5 L 402.6 91.2 L 410.8 92.1 L 419.0 93.3 L 427.0 94.7 L 435.0 96.3 L 442.8 98.2 L 450.6 100.3 L 458.2 102.6 L 465.7 105.2 L 473.0 108.0 L 480.2 111.0 L 487.2 114.3 L 494.1 117.7 L 500.7 121.4 L 507.2 125.3 L 513.5 129.4 L 519.6 133.6 L 525.5 138.1 L 531.2 142.8 L 536.6 147.6 L 541.8 152.6 L 546.8 157.8 L 551.5 163.2 L 556.0 168.7 L 560.3 174.4 L 564.2 180.2 L 568.0 186.1 L 571.4 192.2 L 574.6 198.4 L 577.5 204.7 L 580.1 211.1 L 582.4 217.6 L 584.5 224.2 L 586.2 230.9 L 587.7 237.6 L 588.9 244.5 L 589.8 251.3 L 590.4 258.3 L 590.6 265.2 L 590.6 272.3 L 590.4 279.3 L 589.8 286.3 L 588.9 293.4 L 587.7 300.4 L 586.2 307.5 L 584.5 314.5 L 582.4 321.5 L 580.1 328.4 L 577.5 335.4 L 574.6 342.2 L 571.4 349.0 L 567.9 355.7 L 564.2 362.4 L 560.3 369.0 L 556.0 375.4 L 551.5 381.8 L 546.8 388.1 L 541.8 394.2 L 536.6 400.2 L 531.1 406.1 L 525.5 411.9 L 519.6 417.5 L 513.5 422.9 L 507.2 428.2 L 500.7 433.3 L 494.0 438.3 L 487.2 443.1 L 480.2 447.7 L 473.0 452.1 L 465.6 456.3 L 458.2 460.3 L 450.5 464.1 L 442.8 467.7 L 435.0 471.0 L 427.0 474.2 L 418.9 477.1 L 410.8 479.8 L 402.6 482.3 Z"/>
+          <g clip-path="url(#clip-b)">
+            <circle cx="348" cy="292" r="118" fill="url(#ice-b)"/>
+            <g class="craters">
+              <circle class="crater" cx="292" cy="246" r="16"/>
+              <circle class="crater" cx="400" cy="268" r="10"/>
+              <circle class="crater" cx="318" cy="318" r="7"/>
+              <circle class="crater" cx="424" cy="330" r="12"/>
+            </g>
+            <g class="stripes">
+              <path class="stripe" d="M286 372 C322 390, 368 386, 412 362"/>
+              <path class="stripe" d="M278 388 C320 410, 372 404, 418 376"/>
+              <path class="stripe" d="M292 404 C330 422, 366 416, 400 396"/>
+              <path class="stripe" d="M314 416 C340 428, 368 422, 386 410"/>
+            </g>
+            <ellipse class="plume" cx="362" cy="398" rx="54" ry="30" fill="url(#heat-b)" transform="rotate(-14 362 398)"/>
+            <circle cx="348" cy="292" r="118" fill="url(#term-b)"/>
+          </g>
+          <circle class="limb" cx="348" cy="292" r="118"/>
+          <g class="probe" data-probe transform="translate(402.6 482.3)">
+            <line class="probe-head" x1="0" y1="0" x2="18" y2="0"/>
+            <circle class="probe-ring" r="8"/>
+            <circle class="probe-body" r="3.1"/>
+          </g>
+        </svg>
+        <p class="fine">The curve is a display schematic. True eccentricity is 0.031, too slight to read at this size. Elements on the right are the sample, not the exaggerated drawing.</p>
+      </div>
+      <div class="panel">
+        <p class="kicker">Elements at sample</p>
+        <h2 class="phase-name">e = 0.031</h2>
+        <dl class="elements">
+          <div><dt>Periapsis altitude</dt><dd>171.2 km</dd></div>
+          <div><dt>Apoapsis altitude</dt><dd>198.4 km</dd></div>
+          <div><dt>Period</dt><dd>5 h 56 m</dd></div>
+          <div><dt>Inclination</dt><dd>89.71°</dd></div>
+          <div><dt>Speed at periapsis</dt><dd>132.5 m/s</dd></div>
+          <div><dt>Reference radius</dt><dd>252.1 km</dd></div>
+          <div><dt>RAAN</dt><dd>214.6°</dd></div>
+          <div><dt>Arg. of periapsis</dt><dd>38.2°</dd></div>
+          <div><dt>Mean anomaly</dt><dd>201.4°</dd></div>
+          <div><dt>Residual, OT-12</dt><dd>0.04 m/s</dd></div>
+        </dl>
+        <p class="fine">Passes repeat over the tiger stripes. Trim OT-12 set the inclination and left the ground track on Baghdad Sulcus for the thermal sample.</p>
+      </div>
+    </section>
+
+    <section id="panel-log" class="panel" aria-labelledby="log-title">
+      <p class="kicker">Mission log</p>
+      <h2 id="log-title">Recent events</h2>
+      <p class="fine" style="margin-top:8px">Newest first. Entries through 09-184 · 07:14:02 belong to the stored sample. Marks you add are console notes, not new telemetry.</p>
+      <ol class="events log-list" id="log-full"></ol>
+    </section>
+
+    <div class="dock">
+      <section class="panel" aria-labelledby="timeline-title">
+        <h2 class="kicker" id="timeline-title">Recent events</h2>
+        <ol class="events dock-log" id="log-dock"></ol>
+      </section>
+      <section class="panel controls" aria-labelledby="controls-title">
+        <h2 class="kicker" id="controls-title">Probe controls</h2>
+        <div class="control-grid">
+        <fieldset class="ctrl">
+          <legend>Operational mode</legend>
+          <div class="segment">
+            <label>Survey<input class="visually-hidden" type="radio" name="mode" id="mode-survey" value="survey" checked></label>
+            <label>Hold<input class="visually-hidden" type="radio" name="mode" id="mode-hold" value="hold"></label>
+            <label>Safe<input class="visually-hidden" type="radio" name="mode" id="mode-safe" value="safe"></label>
+          </div>
+        </fieldset>
+        <fieldset class="ctrl">
+          <legend>Display layer</legend>
+          <div class="segment">
+            <label>Path<input class="visually-hidden" type="radio" name="layer" id="layer-path" value="path"></label>
+            <label>Thermal<input class="visually-hidden" type="radio" name="layer" id="layer-thermal" value="thermal" checked></label>
+            <label>Relief<input class="visually-hidden" type="radio" name="layer" id="layer-relief" value="relief"></label>
+          </div>
+        </fieldset>
+        <fieldset class="ctrl">
+          <legend>Altitude datum</legend>
+          <div class="segment">
+            <label>Surface<input class="visually-hidden" type="radio" name="datum" id="datum-surface" value="surface" checked></label>
+            <label>Center<input class="visually-hidden" type="radio" name="datum" id="datum-center" value="center"></label>
+          </div>
+        </fieldset>
+        <fieldset class="ctrl">
+          <legend>Sample interval</legend>
+          <div class="segment">
+            <label>1 s<input class="visually-hidden" type="radio" name="interval" id="interval-1" value="1"></label>
+            <label>4 s<input class="visually-hidden" type="radio" name="interval" id="interval-4" value="4" checked></label>
+            <label>16 s<input class="visually-hidden" type="radio" name="interval" id="interval-16" value="16"></label>
+          </div>
+        </fieldset>
+        </div>
+        <div class="result-row">
+          <svg class="swatch" viewBox="0 0 88 88" aria-hidden="true">
+            <circle class="swatch-moon" cx="40" cy="40" r="16"/>
+            <ellipse class="orbit" cx="44" cy="44" rx="30" ry="24"/>
+            <path class="stripe" d="M30 48 C40 54, 52 52, 60 46"/>
+            <ellipse class="plume" cx="46" cy="52" rx="9" ry="5"/>
+            <circle class="probe-body" cx="66" cy="62" r="3.2"/>
+          </svg>
+          <p id="result">Thermal layer is on. The plume marks the THERM-04 footprint at Baghdad Sulcus.</p>
+        </div>
+        <button type="button" class="mark" id="mark">Mark observation</button>
+      </section>
+      <section class="panel comms" aria-labelledby="comms-title">
+        <h2 class="kicker" id="comms-title">Signal</h2>
+        <p class="lead">NEREID → HALO-09</p>
+        <p>Ka-band · −87.2 dBm · margin 6.4 dB</p>
+        <p class="cd cd-survey-1">Science 48.0 kbps · 60 frames / 60 s</p>
+        <p class="cd cd-survey-4">Science 12.0 kbps · 15 frames / 60 s</p>
+        <p class="cd cd-survey-16">Science 3.0 kbps · 4 frames / 60 s</p>
+        <p class="cd cd-hold-1">Carrier only · queued 48.0 kbps</p>
+        <p class="cd cd-hold-4">Carrier only · queued 12.0 kbps</p>
+        <p class="cd cd-hold-16">Carrier only · queued 3.0 kbps</p>
+        <p class="cd cd-safe-1">Housekeeping 4.0 kbps · science 48.0 kbps off-link</p>
+        <p class="cd cd-safe-4">Housekeeping 4.0 kbps · science 12.0 kbps off-link</p>
+        <p class="cd cd-safe-16">Housekeeping 4.0 kbps · science 3.0 kbps off-link</p>
+        <p>Earth hop from HALO-09 is X-band, one-way 84 min 12 s. The sample does not include a newer packet.</p>
+      </section>
+    </div>
+  </main>
+</div>
+<script>
+(function () {
+  var T0 = Date.UTC(2026, 3, 12, 6, 40, 0);
+  var SAMPLE_MET = (((184 * 24 + 7) * 60 + 14) * 60 + 2) * 1000;
+  var months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var cx = 348, cy = 292, rx = 246, ry = 198;
+  var rot = -16 * Math.PI / 180;
+  var u = 0.25;
+  var loop = 0;
+  var events = [
+    ["P184DT7H14M2S", "09-184 · 07:14:02", "THERM-04 confirmed", "TI-2 on Baghdad Sulcus read 186.4 K, 14.2 K above the fracture baseline. Watch opened. The plains stayed near 75 K.", true],
+    ["P184DT2H41M18S", "09-184 · 02:41:18", "Trim OT-12 complete", "Inclination is 89.71°. Residual velocity 0.04 m/s. The south-polar ground track was held.", false],
+    ["P183DT19H6M44S", "09-183 · 19:06:44", "Radar pass SP-16", "IPR-4 crossed the south polar terrain. No cavity flag was raised. The pass is filed with the thermal watch.", false],
+    ["P181DT11H22M9S", "09-181 · 11:22:09", "Relay lock restored", "HALO-09 recovered the Ka-band carrier after a 14 minute occultation by Enceladus.", false],
+    ["P176DT8H3M51S", "09-176 · 08:03:51", "Survey window opened", "NEREID was set to autonomous survey. Later entries in this log come from the stored sample.", false]
+  ];
+
+  var lines = {
+    mode: {
+      survey: "Mode is subsurface survey. The schematic runs, and science downlink follows the selected interval.",
+      hold: "Mode is orbit hold. The schematic is paused and the science dump is suspended.",
+      safe: "Mode is safe. Instruments are isolated, the marker is amber, and the downlink is housekeeping only."
+    },
+    layer: {
+      path: "Path layer is on. The orbit is emphasized and the thermal plume is hidden.",
+      thermal: "Thermal layer is on. The plume marks the THERM-04 footprint at Baghdad Sulcus.",
+      relief: "Relief layer is on. Craters and tiger stripes are stronger, and the orbit is dimmed."
+    },
+    datum: {
+      surface: "Altitude datum is the surface. Geometric height is 184.6 km.",
+      center: "Altitude datum is the center. Radial distance is 436.7 km."
+    },
+    interval: {
+      "1": "Planned interval is 1 second, 48.0 kbps when science is on the link. The stored sample is unchanged.",
+      "4": "Planned interval is 4 seconds, 12.0 kbps when science is on the link. This matches the stored sample.",
+      "16": "Planned interval is 16 seconds, 3.0 kbps when science is on the link. The stored sample is unchanged."
+    },
+    view: {
+      survey: "Survey section. Enceladus, mission status, and the four sample readings.",
+      telemetry: "Telemetry section. The same sample, written out as a record.",
+      trajectory: "Trajectory section. Elements from the sample. The drawn ellipse exaggerates eccentricity.",
+      log: "Log section. Stored events, newest first."
+    }
+  };
+
+  function pad(n) { return String(n).padStart(2, "0"); }
+
+  function metParts(ms) {
+    if (ms < 0) ms = 0;
+    var s = Math.floor(ms / 1000);
+    return {
+      days: Math.floor(s / 86400),
+      h: Math.floor((s % 86400) / 3600),
+      m: Math.floor((s % 3600) / 60),
+      sec: s % 60
+    };
+  }
+
+  function formatAge(ms) {
+    if (ms < 0) return "ahead of this clock";
+    var s = Math.floor(ms / 1000);
+    var h = Math.floor(s / 3600);
+    var m = Math.floor((s % 3600) / 60);
+    if (h >= 48) {
+      var d = Math.floor(h / 24);
+      return d + "d " + (h % 24) + "h " + pad(m) + "m";
+    }
+    return h + "h " + pad(m) + "m " + pad(s % 60) + "s";
+  }
+
+  function stamp(ms) {
+    var p = metParts(ms);
+    return "09-" + p.days + " · " + pad(p.h) + ":" + pad(p.m) + ":" + pad(p.sec);
+  }
+
+  function point(frac) {
+    var t = frac * Math.PI * 2;
+    var ct = Math.cos(t), st = Math.sin(t);
+    var cr = Math.cos(rot), sr = Math.sin(rot);
+    return {
+      x: cx + rx * ct * cr - ry * st * sr,
+      y: cy + rx * ct * sr + ry * st * cr
+    };
+  }
+
+  function placeProbe() {
+    var p = point(u);
+    var q = point(u + 0.01);
+    var deg = Math.atan2(q.y - p.y, q.x - p.x) * 180 / Math.PI;
+    var transform = "translate(" + p.x.toFixed(1) + " " + p.y.toFixed(1) + ") rotate(" + deg.toFixed(1) + ")";
+    document.querySelectorAll("[data-probe]").forEach(function (node) {
+      node.setAttribute("transform", transform);
+    });
+  }
+
+  function surveying() {
+    var selected = document.getElementById("mode-survey");
+    return selected && selected.checked && !reduceMotion;
+  }
+
+  function syncMotion() {
+    if (loop) {
+      cancelAnimationFrame(loop);
+      loop = 0;
+    }
+    if (reduceMotion) u = 0.25;
+    placeProbe();
+    if (!surveying()) return;
+    var last = performance.now();
+    function frame(now) {
+      if (!surveying()) {
+        loop = 0;
+        return;
+      }
+      u = (u + (now - last) / 48000) % 1;
+      last = now;
+      placeProbe();
+      loop = requestAnimationFrame(frame);
+    }
+    loop = requestAnimationFrame(frame);
+  }
+
+  function renderClocks() {
+    var now = Date.now();
+    var met = now - T0;
+    var p = metParts(met);
+    document.getElementById("met-d").textContent = String(p.days);
+    document.getElementById("met-h").textContent = pad(p.h);
+    document.getElementById("met-m").textContent = pad(p.m);
+    document.getElementById("met-s").textContent = pad(p.sec);
+    document.getElementById("mast-met").textContent = p.days + ":" + pad(p.h) + ":" + pad(p.m) + ":" + pad(p.sec);
+    var d = new Date(now);
+    document.getElementById("utc").textContent = pad(d.getUTCDate()) + " " + months[d.getUTCMonth()] + " " + d.getUTCFullYear() + "  " + pad(d.getUTCHours()) + ":" + pad(d.getUTCMinutes()) + ":" + pad(d.getUTCSeconds());
+    var age = formatAge(now - (T0 + SAMPLE_MET));
+    document.querySelectorAll("[data-age]").forEach(function (node) { node.textContent = age; });
+  }
+
+  function eventItem(entry) {
+    var li = document.createElement("li");
+    li.className = "event" + (entry[4] ? " event--watch" : "");
+    var time = document.createElement("time");
+    time.dateTime = entry[0];
+    time.textContent = entry[1];
+    var title = document.createElement("p");
+    title.className = "event-title";
+    title.textContent = entry[2];
+    var body = document.createElement("p");
+    body.className = "event-body";
+    body.textContent = entry[3];
+    li.append(time, title, body);
+    return li;
+  }
+
+  function renderEvents() {
+    ["log-dock", "log-full"].forEach(function (id) {
+      var list = document.getElementById(id);
+      list.replaceChildren.apply(list, events.map(eventItem));
+    });
+  }
+
+  function say(text) {
+    document.getElementById("result").textContent = text;
+  }
+
+  document.querySelectorAll('input[type="radio"]').forEach(function (input) {
+    input.addEventListener("change", function () {
+      if (!input.checked || !lines[input.name]) return;
+      say(lines[input.name][input.value]);
+      if (input.name === "mode") syncMotion();
+    });
+  });
+
+  document.getElementById("dismiss").addEventListener("click", function () {
+    document.getElementById("alert").hidden = true;
+    var restore = document.getElementById("restore");
+    restore.hidden = false;
+    restore.focus();
+    say("Thermal watch shelved. The 186.4 K sample remains on the thermal card.");
+  });
+
+  document.getElementById("restore").addEventListener("click", function () {
+    var alert = document.getElementById("alert");
+    alert.hidden = false;
+    document.getElementById("restore").hidden = true;
+    document.getElementById("dismiss").focus();
+    say("Thermal watch THERM-04 is back on the console.");
+  });
+
+  document.getElementById("mark").addEventListener("click", function () {
+    var when = stamp(Date.now() - T0);
+    events.unshift(["", when, "Operator mark", "Observation marked from this console. No new telemetry was requested.", false]);
+    renderEvents();
+    say("Observation marked at " + when + " and added to the log.");
+  });
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) {
+      if (loop) cancelAnimationFrame(loop);
+      loop = 0;
+    } else {
+      syncMotion();
+    }
+  });
+
+  renderEvents();
+  renderClocks();
+  setInterval(renderClocks, 1000);
+  syncMotion();
+})();
+</script>
+</body>
+</html>

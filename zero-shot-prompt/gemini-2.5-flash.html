@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORBITAL 09 - Mission Control</title>
+    <style>
+        :root {
+            --bg-color: #00001a; /* Near-black navy */
+            --primary-color: #00ffff; /* Icy cyan */
+            --warning-color: #ffbf00; /* Amber */
+            --text-color: #e0e0e0;
+            --grid-color: rgba(0, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Space Mono', 'Roboto Mono', monospace, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-size: 14px;
+        }
+
+        /* Basic layout */
+        header {
+            background-color: rgba(0, 0, 26, 0.8);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--primary-color);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: var(--primary-color);
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .mission-id {
+            font-size: 1.2em;
+            color: var(--text-color);
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        nav li {
+            margin-left: 25px;
+        }
+
+        nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 1.1em;
+            padding: 5px 0;
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+
+        nav a:hover, nav a.active {
+            color: var(--primary-color);
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.7);
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 20px;
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        .section {
+            background-color: rgba(0, 0, 40, 0.6);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.1);
+            position: relative;
+            backdrop-filter: blur(5px);
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            font-size: 1.5em;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+            padding-bottom: 10px;
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Specific section placements */
+        .mission-status { grid-area: 1 / 1 / 2 / 2; }
+        .central-visualization { grid-area: 1 / 2 / 3 / 3; display: flex; justify-content: center; align-items: center; }
+        .telemetry-metrics { grid-area: 2 / 1 / 3 / 2; }
+        .recent-events { grid-area: 3 / 1 / 4 / 2; }
+        .warning-anomaly { grid-area: 3 / 2 / 4 / 3; }
+        .probe-control { grid-area: 1 / 3 / 2 / 4; }
+        .comm-status { grid-area: 2 / 3 / 3 / 4; }
+
+        /* Grid lines overlay */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            background-image:
+                linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+                linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+            background-size: 25px 25px;
+            opacity: 0.2;
+        }
+
+        /* Subtle atmospheric gradient */
+        .gradient-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -2;
+            background: radial-gradient(circle at 50% 10%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 90%, rgba(0, 0, 255, 0.1) 0%, transparent 50%);
+            opacity: 0.6;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            main {
+                grid-template-columns: 1.5fr 1fr;
+                grid-template-rows: auto auto auto auto;
+                grid-template-areas:
+                    "mission-status probe-control"
+                    "central-visualization central-visualization"
+                    "telemetry-metrics comm-status"
+                    "recent-events warning-anomaly";
+            }
+            .mission-status { grid-area: mission-status; }
+            .central-visualization { grid-area: central-visualization; }
+            .telemetry-metrics { grid-area: telemetry-metrics; }
+            .recent-events { grid-area: recent-events; }
+            .warning-anomaly { grid-area: warning-anomaly; }
+            .probe-control { grid-area: probe-control; }
+            .comm-status { grid-area: comm-status; }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 10px 15px;
+            }
+            .logo {
+                margin-bottom: 10px;
+            }
+            nav ul {
+                flex-direction: column;
+            }
+            nav li {
+                margin: 5px 0;
+            }
+            main {
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(7, auto);
+                grid-template-areas:
+                    "mission-status"
+                    "probe-control"
+                    "central-visualization"
+                    "telemetry-metrics"
+                    "comm-status"
+                    "recent-events"
+                    "warning-anomaly";
+                padding: 10px;
+            }
+            .section {
+                padding: 15px;
+            }
+            .section h2 {
+                font-size: 1.3em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-overlay"></div>
+    <div class="gradient-overlay"></div>
+
+    <header>
+        <div class="logo">ORBITAL 09</div>
+        <div class="mission-id">MISSION: ENCELADUS PROBE ALPHA</div>
+        <nav>
+            <ul>
+                <li><a href="#" class="active">OVERVIEW</a></li>
+                <li><a href="#">LOGS</a></li>
+                <li><a href="#">SYSTEMS</a></li>
+                <li><a href="#">RESEARCH</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="section mission-status">
+            <h2>MISSION STATUS</h2>
+            <div id="mission-phase">Phase: Orbit Insertion</div>
+            <div id="elapsed-time">Elapsed Time: 007d 14h 32m 08s</div>
+        </section>
+
+        <section class="section central-visualization">
+            <h2>ENCELADUS & PROBE ORBIT</h2>
+            <svg viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%;">
+                <!-- Enceladus (Moon) -->
+                <circle cx="300" cy="200" r="80" fill="#2a2a4d" stroke="#00ffff" stroke-width="2">
+                    <animate attributeName="r" values="80;82;80" dur="4s" repeatCount="indefinite" />
+                </circle>
+                <text x="300" y="210" text-anchor="middle" fill="#00ffff" font-size="16">ENCELADUS</text>
+
+                <!-- Probe Orbital Path (Elliptical) -->
+                <path id="orbitPath" d="M150,200 A150,100 0 1,1 450,200 A150,100 0 1,1 150,200"
+                    fill="none" stroke="#00ffff" stroke-width="1" stroke-dasharray="5,5" />
+
+                <!-- Probe -->
+                <circle cx="0" cy="0" r="8" fill="#ffbf00" stroke="#00ffff" stroke-width="1.5">
+                    <animateMotion dur="20s" repeatCount="indefinite">
+                        <mpath href="#orbitPath" />
+                    </animateMotion>
+                </circle>
+                <text x="0" y="0" text-anchor="middle" fill="#ffbf00" font-size="12">PROBE</text>
+            </svg>
+        </section>
+
+        <section class="section telemetry-metrics">
+            <h2>TELEMETRY METRICS</h2>
+            <div class="metric-item">BATTERY: <span id="battery-level">87%</span></div>
+            <div class="metric-item">SIGNAL: <span id="signal-strength"> -78 dBm</span></div>
+            <div class="metric-item">ALTITUDE: <span id="orbital-altitude">12,500 km</span></div>
+            <div class="metric-item">THERMAL: <span id="thermal-reading"> -182.3 °C</span></div>
+        </section>
+
+        <section class="section recent-events">
+            <h2>RECENT EVENTS</h2>
+            <ul id="event-log">
+                <li><span class="timestamp">[007d 14h 28m]</span> Data Uplink Complete.</li>
+                <li><span class="timestamp">[007d 14h 20m]</span> Thermal Anomaly Detected.</li>
+                <li><span class="timestamp">[007d 14h 05m]</span> Probe Navigational Correction.</li>
+                <li><span class="timestamp">[007d 13h 45m]</span> Enceladus Flyby Initiated.</li>
+            </ul>
+        </section>
+
+        <section class="section warning-anomaly">
+            <h2>THERMAL ANOMALY WARNING</h2>
+            <div id="anomaly-message" class="warning-text">
+                <span class="indicator">!</span> CRITICAL: Unexplained thermal spikes detected beneath ice crust. Investigate immediate.
+            </div>
+            <button id="dismiss-warning" class="control-button">DISMISS WARNING</button>
+        </section>
+
+        <section class="section probe-control">
+            <h2>PROBE CONTROL</h2>
+            <div class="control-group">
+                <label for="probe-state">Operational State:</label>
+                <select id="probe-state" class="control-input">
+                    <option value="active">ACTIVE</option>
+                    <option value="standby">STANDBY</option>
+                    <option value="diagnostic">DIAGNOSTIC</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <button id="deploy-scanner" class="control-button">DEPLOY SCANNER</button>
+                <button id="recalibrate-nav" class="control-button">RECALIBRATE NAV</button>
+            </div>
+            <div class="control-group">
+                <label for="telemetry-display">Telemetry Display:</label>
+                <select id="telemetry-display" class="control-input">
+                    <option value="realtime">REAL-TIME</option>
+                    <option value="historical">HISTORICAL</option>
+                    <option value="predictive">PREDICTIVE</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="section comm-status">
+            <h2>COMMUNICATIONS STATUS</h2>
+            <div class="comm-item">Uplink: <span class="status-indicator online">ONLINE</span></div>
+            <div class="comm-item">Downlink: <span class="status-indicator online">ONLINE</span></div>
+            <div class="comm-item">Latency: <span id="comm-latency">1.35s</span></div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tab / Navigation Control
+            const navLinks = document.querySelectorAll('nav a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                    // In a real app, this would switch visible content
+                    console.log('Navigating to:', link.textContent);
+                });
+            });
+
+            // Mission Control: Change Probe Operational State
+            const probeStateSelect = document.getElementById('probe-state');
+            probeStateSelect.addEventListener('change', (event) => {
+                const newState = event.target.value.toUpperCase();
+                console.log('Probe operational state changed to:', newState);
+                // Visual feedback for state change
+                const missionPhase = document.getElementById('mission-phase');
+                missionPhase.textContent = `Phase: ${newState}`;
+            });
+
+            // Telemetry / Visualization Control
+            const telemetryDisplaySelect = document.getElementById('telemetry-display');
+            telemetryDisplaySelect.addEventListener('change', (event) => {
+                const newDisplayMode = event.target.value.toUpperCase();
+                console.log('Telemetry display mode changed to:', newDisplayMode);
+                // In a real app, this would update charts/data display
+                // For demonstration, let's change a telemetry metric
+                const thermalReading = document.getElementById('thermal-reading');
+                if (newDisplayMode === 'PREDICTIVE') {
+                    thermalReading.textContent = '-179.8 °C (Predicted increase)';
+                    thermalReading.style.color = 'var(--warning-color)';
+                } else {
+                    thermalReading.textContent = '-182.3 °C';
+                    thermalReading.style.color = 'var(--text-color)';
+                }
+            });
+
+            // Dismissible Warning / Notification
+            const dismissWarningButton = document.getElementById('dismiss-warning');
+            const anomalyMessage = document.getElementById('anomaly-message');
+            dismissWarningButton.addEventListener('click', () => {
+                anomalyMessage.style.display = 'none';
+                dismissWarningButton.style.display = 'none';
+                console.log('Thermal anomaly warning dismissed.');
+            });
+
+            // Other interactive controls (just console logs for now)
+            document.getElementById('deploy-scanner').addEventListener('click', () => {
+                console.log('Deploy Scanner initiated.');
+                alert('Scanner deployed. Data acquisition commencing.');
+            });
+
+            document.getElementById('recalibrate-nav').addEventListener('click', () => {
+                console.log('Recalibrate Navigation initiated.');
+                alert('Navigation recalibration sequence started.');
+            });
+
+            // Dynamic elapsed time (simple increment for demo)
+            const elapsedTimeElement = document.getElementById('elapsed-time');
+            let totalSeconds = (7 * 24 * 3600) + (14 * 3600) + (32 * 60) + 8; // Initial time
+            setInterval(() => {
+                totalSeconds++;
+                const days = Math.floor(totalSeconds / (24 * 3600)).toString().padStart(3, '0');
+                const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600).toString().padStart(2, '0');
+                const minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+                const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+                elapsedTimeElement.textContent = `Elapsed Time: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
